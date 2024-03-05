@@ -1,0 +1,184 @@
+version: '0.1'
+
+services:
+  hadoop-master:
+    build: 
+      context: ./
+      dockerfile: ./NameNode/Dockerfile
+    container_name: hadoop-master
+    volumes:
+      - ./NameNode/Data:/usr/local/hadoop/data/nameNode
+      - ./KDC/keytabs:/etc/security/keytab/
+    ports:
+    #  - 9870:9870
+     - 9871:9871
+    hostname: hadoop-master
+    networks:
+      docker.net:
+        ipv4_address: 192.168.4.10
+    extra_hosts:
+      - "hadoop-master: 192.168.4.10"
+      - "hadoop-worker1: 192.168.4.11"
+      - "hadoop-worker2: 192.168.4.12"
+      - "hadoop-rmanager: 192.168.4.13"
+      - "hadoop-proxy: 192.168.4.14"
+      - "hadoop-history: 192.168.4.15"
+      - "kdc-server: 192.168.4.20"
+    depends_on:
+      - hadoop-kerberos
+
+  hadoop-worker1:
+    build: 
+      context: ./
+      dockerfile: ./Worker/Dockerfile
+    container_name: hadoop-worker1
+    volumes:
+      - ./Worker/Data1:/usr/local/hadoop/data/dataNode
+      - ./KDC/keytabs:/etc/security/keytab/
+    ports:
+      - 1006:1006
+      - 9865:9865
+      - 8042:8042
+      - 8044:8044
+    hostname: hadoop-worker1
+    networks:
+      docker.net:
+        ipv4_address: 192.168.4.11
+    extra_hosts:
+      - "hadoop-master: 192.168.4.10"
+      - "hadoop-worker1: 192.168.4.11"
+      - "hadoop-worker2: 192.168.4.12"
+      - "hadoop-rmanager: 192.168.4.13"
+      - "hadoop-proxy: 192.168.4.14"
+      - "hadoop-history: 192.168.4.15"
+      - "kdc-server: 192.168.4.20"
+    depends_on:
+      - hadoop-master
+      - hadoop-yarn
+
+  hadoop-worker2:
+    build: 
+      context: ./
+      dockerfile: ./Worker/Dockerfile
+    container_name: hadoop-worker2
+    volumes:
+      - ./Worker/Data2:/usr/local/hadoop/data/dataNode
+      - ./KDC/keytabs:/etc/security/keytab/
+    # ports:
+    #   - 9865:9864
+    #   - 8043:8042
+    hostname: hadoop-worker2
+    networks:
+      docker.net:
+        ipv4_address: 192.168.4.12
+    extra_hosts:
+      - "hadoop-master: 192.168.4.10"
+      - "hadoop-worker1: 192.168.4.11"
+      - "hadoop-worker2: 192.168.4.12"
+      - "hadoop-rmanager: 192.168.4.13"
+      - "hadoop-proxy: 192.168.4.14"
+      - "hadoop-history: 192.168.4.15"
+      - "kdc-server: 192.168.4.20"
+    depends_on:
+      - hadoop-master
+      - hadoop-yarn
+  
+  hadoop-yarn:
+    build: 
+      context: ./
+      dockerfile: ./ResourceManager/Dockerfile
+    container_name: hadoop-rmanager
+    volumes:
+      - ./KDC/keytabs:/etc/security/keytab/
+    ports:
+      # - 8088:8088
+      - 8090:8090
+    hostname: hadoop-rmanager
+    networks:
+      docker.net:
+        ipv4_address: 192.168.4.13
+    extra_hosts:
+      - "hadoop-master: 192.168.4.10"
+      - "hadoop-worker1: 192.168.4.11"
+      - "hadoop-worker2: 192.168.4.12"
+      - "hadoop-rmanager: 192.168.4.13"
+      - "hadoop-proxy: 192.168.4.14"
+      - "hadoop-history: 192.168.4.15"
+      - "kdc-server: 192.168.4.20"
+    depends_on:
+      - hadoop-kerberos
+      - hadoop-master
+  
+  hadoop-proxy:
+    build: 
+      context: ./
+      dockerfile: ./WebProxy/Dockerfile
+    container_name: hadoop-proxy
+    volumes:
+      - ./KDC/keytabs:/etc/security/keytab/
+    ports:
+    - 9090:9090
+    hostname: hadoop-proxy
+    networks:
+      docker.net:
+        ipv4_address: 192.168.4.14
+    extra_hosts:
+      - "hadoop-master: 192.168.4.10"
+      - "hadoop-worker1: 192.168.4.11"
+      - "hadoop-worker2: 192.168.4.12"
+      - "hadoop-rmanager: 192.168.4.13"
+      - "hadoop-proxy: 192.168.4.14"
+      - "hadoop-history: 192.168.4.15"
+      - "kdc-server: 192.168.4.20"
+    depends_on:
+      - hadoop-yarn
+  
+  hadoop-history:
+    build: 
+      context: ./
+      dockerfile: ./JobHistory/Dockerfile
+    container_name: hadoop-history
+    volumes:
+      - ./KDC/keytabs:/etc/security/keytab/
+    ports:
+      - 19890:19890
+    hostname: hadoop-history
+    networks:
+      docker.net:
+        ipv4_address: 192.168.4.15
+    extra_hosts:
+      - "hadoop-master: 192.168.4.10"
+      - "hadoop-worker1: 192.168.4.11"
+      - "hadoop-worker2: 192.168.4.12"
+      - "hadoop-rmanager: 192.168.4.13"
+      - "hadoop-proxy: 192.168.4.14"
+      - "hadoop-history: 192.168.4.15"
+      - "kdc-server: 192.168.4.20"
+    depends_on:
+      - hadoop-yarn
+      - hadoop-master
+  
+  hadoop-kerberos:
+    build: ./KDC
+    volumes:
+      - ./KDC/keytabs:/root/keytabs
+    container_name: kdc-server
+    hostname: kdc-server
+    networks:
+      docker.net:
+        ipv4_address: 192.168.4.20
+    extra_hosts:
+      - "hadoop-master: 192.168.4.10"
+      - "hadoop-worker1: 192.168.4.11"
+      - "hadoop-worker2: 192.168.4.12"
+      - "hadoop-rmanager: 192.168.4.13"
+      - "hadoop-proxy: 192.168.4.14"
+      - "hadoop-history: 192.168.4.15"
+      - "kdc-server: 192.168.4.20"
+
+networks:
+    docker.net:
+      enable_ipv6: false    
+      ipam:
+        config: 
+          - subnet: 192.168.4.0/24            
