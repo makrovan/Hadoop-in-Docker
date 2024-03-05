@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+<!-- Hadoop Cluster Setup -->
+<!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/ClusterSetup.html -->
+	<property>
+		<name>fs.defaultFS</name>
+		<value>hdfs://hadoop-master:9000</value>
+	</property>
+	<property>
+		<name>hadoop.security.authentication</name>
+		<value>kerberos</value>
+	</property>
+<!-- Hadoop in Secure Mode -->
+<!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SecureMode.html#Common_Configurations -->
+	<property>
+		<name>hadoop.security.authorization</name>
+		<value>true</value>
+	</property>
+        <property>
+                <name>hadoop.security.auth_to_local</name>
+                <value>
+                        RULE:[2:$1/$2@$0]([ndj]n/.*@REALM\.TLD)s/.*/hdfs/
+                        RULE:[2:$1/$2@$0]([rn]m/.*@REALM\.TLD)s/.*/yarn/
+                        RULE:[2:$1/$2@$0](jhs/.*@REALM\.TLD)s/.*/mapred/
+                        DEFAULT
+                </value>
+        </property>
+<!-- Authentication for Hadoop HTTP web-consoles -->
+<!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/HttpAuthentication.html --> 
+        <property>
+                <name>hadoop.http.filter.initializers</name>
+                <value>org.apache.hadoop.security.AuthenticationFilterInitializer</value>
+        </property>
+        <property>
+                <name>hadoop.http.authentication.type</name>
+                <value>kerberos</value>
+        </property>
+        <property>
+                <name>hadoop.http.authentication.token.validity</name>
+                <value>3600</value>
+        </property>
+        <property>
+                <name>hadoop.http.authentication.token.max-inactive-interval</name>
+                <value>-1</value>
+        </property>
+        <property>
+                <name>hadoop.http.authentication.signature.secret.file</name>
+                <value>$user.home/hadoop-http-auth-signature-secret</value>
+        </property>
+        <property>
+                <name>hadoop.http.authentication.cookie.domain</name>
+                <value></value>
+        </property>
+        <property>
+                <name>hadoop.http.authentication.cookie.persistent</name>
+                <value>false</value>
+        </property>
+        <property>
+                <name>hadoop.http.authentication.simple.anonymous.allowed</name>
+                <value>true</value>
+        </property>
+        <property>
+                <name>hadoop.http.authentication.kerberos.principal</name>
+                <value>HTTP/_HOST@$REALM.TLD</value>
+        </property>
+        <property>
+                <name>hadoop.http.authentication.kerberos.keytab</name>
+                <value>/etc/security/keytab/HTTP.service.keytab</value>
+        </property>
+<!-- CORS -->
+<!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/HttpAuthentication.html#CORS -->
+        <property>
+                <name>hadoop.http.cross-origin.enabled</name>
+                <value>false</value>
+        </property>
+        <property>
+                <name>hadoop.http.cross-origin.allowed-origins</name>
+                <value>*</value>
+        </property>
+        <property>
+                <name>hadoop.http.cross-origin.allowed-methods</name>
+                <value>GET,POST,HEAD</value>
+        </property>
+        <property>
+                <name>hadoop.http.cross-origin.allowed-headers</name>
+                <value>X-Requested-With,Content-Type,Accept,Origin</value>
+        </property>
+        <property>
+                <name>hadoop.http.cross-origin.max-age</name>
+                <value>1800</value>
+        </property>
+</configuration>
