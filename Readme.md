@@ -36,6 +36,6 @@ Kerberos-сервер развернут на Docker-контейнере [makro
 - `echo "*/admin@REALM.TLD *" >> /etc/krb5kdc/kadm5.acl`
 
 Вся остальная конфигурация выполнена внутри [docker-compose.yml](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/docker-compose.yml). Общие конфигурационные файлы в директории [Common](https://github.com/makrovan/Hadoop-in-Docker/tree/792815da32e5fbb38c5fc13c0c509d5451b868c9/Common).
-При первом запуске выполняется [форматирование файловой системы HTFS](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/NameNode/init-script.sh), запуск сервера MapReduce JobHistory "падает", из-за отсутствия прав доступа... 
+При первом запуске выполняется [форматирование файловой системы HDFS](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/NameNode/init-script.sh), запуск сервера MapReduce JobHistory "падает", из-за отсутствия прав доступа... 
 
 При использовании [форматирование файловой системы HDFS](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/NameNode/init-script.sh) в последующем отключить, настроить необходимые права доступа.
