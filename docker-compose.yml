@@ -176,6 +176,29 @@ services:
       - "hadoop-history: 192.168.4.15"
       - "kdc-server: 192.168.4.20"
 
+  hadoop-client:
+    build: 
+      context: ./
+      dockerfile: ./Client/Dockerfile
+    container_name: hadoop-client
+    hostname: hadoop-client
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    networks:
+      docker.net:
+        ipv4_address: 192.168.4.100
+    extra_hosts:
+      - "hadoop-master: 192.168.4.10"
+      - "hadoop-worker1: 192.168.4.11"
+      - "hadoop-worker2: 192.168.4.12"
+      - "hadoop-rmanager: 192.168.4.13"
+      - "hadoop-proxy: 192.168.4.14"
+      - "hadoop-history: 192.168.4.15"
+      - "kdc-server: 192.168.4.20"
+    depends_on:
+      - hadoop-yarn
+      - hadoop-master
+
 networks:
     docker.net:
       enable_ipv6: false    
