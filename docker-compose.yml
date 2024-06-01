@@ -226,4 +226,5 @@ networks:
 # JobHistory и Data2 - почему-то отваливаются...
 # ApacheRanger и ApacheKnox - не знаю надо ли, можно попробовать настроить
 # Перейти на Docker swarm
-# Исправить readme.md: запуск сервера X: xhost + ${localhost}
+# Исправить readme.md: запуск сервера X: xhost + ${localhost} и настройка браузера:
+# about:config -> network.negotiate-auth.trusted-uris: docker.net
