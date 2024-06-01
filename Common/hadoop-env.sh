@@ -8,6 +8,11 @@ export HADOOP_HDFS_HOME=$HADOOP_HOME
 export HADOOP_MAPRED_HOME=$HADOOP_HOME
 export HADOOP_YARN_HOME=$HADOOP_HOME
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+export PATH=$PATH;$HADOOP_HOME/bin
+
+export HADOOP_JAAS_DEBUG=true
+export HADOOP_OPTS="-Djava.net.preferIPv4Stack=true -Dsun.security.krb5.debug=true -Dsun.security.spnego.debug"
+
 
 #
 # Licensed to the Apache Software Foundation (ASF) under one

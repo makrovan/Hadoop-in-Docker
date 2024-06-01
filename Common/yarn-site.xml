@@ -18,17 +18,17 @@
 <!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/ClusterSetup.html -->
 	<property>
 		<name>yarn.resourcemanager.hostname</name>
-		<value>hadoop-rmanager</value>
+		<value>hadoop-rmanager.docker.net</value>
 	</property>
 <!-- Hadoop in Secure Mode -->
 <!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SecureMode.html -->
 	<property>
 		<name>yarn.web-proxy.address</name>
-		<value>hadoop-proxy:9090</value>
+		<value>hadoop-proxy.docker.net:9090</value>
 	</property>
 	<property>
 		<name>yarn.resourcemanager.principal</name>
-		<value>rm/_HOST@REALM.TLD</value>
+		<value>rm/_HOST@DOCKER.NET</value>
 	</property>
 	<property>
 		<name>yarn.resourcemanager.keytab</name>
@@ -36,11 +36,11 @@
 	</property>
 	<property>
 		<name>yarn.resourcemanager.webapp.https.address</name>
-		<value>hadoop-rmanager:8090</value>
+		<value>hadoop-rmanager.docker.net:8090</value>
 	</property>
 	<property>
 		<name>yarn.nodemanager.principal</name>
-		<value>nm/_HOST@REALM.TLD</value>
+		<value>nm/_HOST@DOCKER.NET</value>
 	</property>
 	<property>
 		<name>yarn.nodemanager.keytab</name>
@@ -68,7 +68,7 @@
 	</property>
 	<property>
 		<name>yarn.web-proxy.principal</name>
-		<value>rm/_HOST@REALM.TLD</value>
+		<value>rm/_HOST@DOCKER.NET</value>
 	</property>
     <property>
         <name>yarn.http.policy</name>
