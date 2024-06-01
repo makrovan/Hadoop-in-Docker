@@ -2,9 +2,9 @@
 
 apt update && apt install sudo -y
 
-mkdir /usr/local/hadoop/logs
-chown hdfs:hadoop /usr/local/hadoop/logs
-chmod g+rwx /usr/local/hadoop/logs
+# mkdir /usr/local/hadoop/logs
+# chown hdfs:hadoop /usr/local/hadoop/logs
+# chmod g+rwx /usr/local/hadoop/logs
 
 # Start NodeManager - the first process
 sudo -u yarn /usr/local/hadoop/bin/yarn nodemanager &

@@ -11,31 +11,41 @@
 
 Все образы внутри кластера развернуты на Docker-контейнере [makrov/hadoop-image](https://hub.docker.com/r/makrov/hadoop-image) (Ubuntu):
 - `apt-get update`
-- `apt-get install openjdk-8-jdk wget krb5-user -y` (Default Kerberos version 5 realm: REALM.TLD, Kerberos servers for your realm: kdc-server, Administrative server for your Kerberos realm: kdc-server)
+- `apt-get install openjdk-8-jdk wget krb5-user -y` (Default Kerberos version 5 realm: DOCKER.NET, Kerberos servers for your realm: kdc-server.docker.net, Administrative server for your Kerberos realm: kdc-server.docker.net)
 - `cd /usr/local`
-- `wget https://dlcdn.apache.org/hadoop/common/stable/hadoop-3.3.6-aarch64.tar.gz`
-- `tar xzf hadoop-3.3.6-aarch64.tar.gz`
-- `mv hadoop-3.3.6 hadoop`
-- `rm hadoop-3.3.6-aarch64.tar.gz`
+- `wget https://dlcdn.apache.org/hadoop/common/stable/hadoop-3.4.0-aarch64.tar.gz`
+- `tar xzf hadoop-3.4.0-aarch64.tar.gz`
+- `mv hadoop-3.4.0 hadoop`
+- `rm hadoop-3.4.0-aarch64.tar.gz`
 - `addgroup hadoop`
 - `adduser --ingroup hadoop hdfs (password: hadoop)`
 - `adduser --ingroup hadoop yarn (password: hadoop)`
 - `adduser --ingroup hadoop mapred (password: hadoop)`
 - `su hdfs`
 - `cd ~`
-- `keytool -genkey -alias jetty -keyalg RSA (Enter keystore password: Hadoop, What is your first and last name? hadoop-master)`
+- `keytool -genkey -alias jetty -keyalg RSA (Enter keystore password: hadoop, What is your first and last name? hadoop-master.docker.net, Enter key password for <jetty>: same as keystore password)`
 - `exit`
-- `chown hdfs:hadoop -R /usr/local/hadoop/`
-- `chmod g+rwx -R /usr/local/hadoop/`
+- `mkdir -p -m 700 /usr/local/hadoop/data/nameNode`
+- `mkdir -p -m 700 /usr/local/hadoop/data/dataNade`
+- `mkdir -p -m 775 /usr/local/hadoop/logs`
+- `mkdir -p -m 755 /tmp/hadoop-yarn/nm-local-dir`
+- `mkdir -p -m 755 /usr/local/hadoop/logs/userlogs`
+- `chown hdfs:hadoop -R /usr/local/hadoop/data/nameNode`
+- `chown hdfs:hadoop -R /usr/local/hadoop/data/dataNade`
+- `chown hdfs:hadoop -R /usr/local/hadoop/logs`
+- `chown yarn:hadoop -R /tmp/hadoop-yarn/nm-local-dir`
+- `chown yarn:hadoop -R /usr/local/hadoop/logs/userlogs`
 
 Kerberos-сервер развернут на Docker-контейнере [makrov/hadoop-kdc-server](https://hub.docker.com/r/makrov/hadoop-kdc-server) (Ubuntu):
 - `apt-get update`
-- `apt install krb5-kdc krb5-admin-server -y` (Default Kerberos version 5 realm: REALM.TLD, Kerberos servers for your realm: kdc-server, Administrative server for your Kerberos realm: kdc-server)
+- `apt install krb5-kdc krb5-admin-server -y` (Default Kerberos version 5 realm: DOCKER.NET, Kerberos servers for your realm: kdc-server.docker.net, Administrative server for your Kerberos realm: kdc-server.docker.net)
 - `krb5_newrealm` (Enter KDC database master key: hadoop)
-- `kadmin.local -q 'addprinc admin/admin'` (Enter password for principal "admin/admin@REALM.TLD": hadoop)
-- `echo "*/admin@REALM.TLD *" >> /etc/krb5kdc/kadm5.acl`
+- `kadmin.local -q 'addprinc hdfs'` (Enter password for principal "hdfs@DOCKER.NET": hadoop)
+- `kadmin.local -q 'addprinc yarn'` (Enter password for principal "yarn@DOCKER.NET": hadoop)
+- `kadmin.local -q 'addprinc mapred'` (Enter password for principal "mapred@DOCKER.NET": hadoop)
+- `echo "hdfs@DOCKER.NET *" >> /etc/krb5kdc/kadm5.acl`
+- `echo "yarn@DOCKER.NET *" >> /etc/krb5kdc/kadm5.acl`
+- `echo "mapred@DOCKER.NET *" >> /etc/krb5kdc/kadm5.acl`
 
 Вся остальная конфигурация выполнена внутри [docker-compose.yml](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/docker-compose.yml). Общие конфигурационные файлы в директории [Common](https://github.com/makrovan/Hadoop-in-Docker/tree/792815da32e5fbb38c5fc13c0c509d5451b868c9/Common).
-При первом запуске выполняется [форматирование файловой системы HDFS](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/NameNode/init-script.sh), запуск сервера MapReduce JobHistory "падает", из-за отсутствия прав доступа... 
-
-При использовании [форматирование файловой системы HDFS](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/NameNode/init-script.sh) в последующем отключить, настроить необходимые права доступа.
+При первом запуске выполняется [форматирование файловой системы HDFS](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/NameNode/init-script.sh).

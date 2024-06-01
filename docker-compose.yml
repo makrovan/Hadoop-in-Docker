@@ -9,23 +9,24 @@ services:
     volumes:
       - ./NameNode/Data:/usr/local/hadoop/data/nameNode
       - ./KDC/keytabs:/etc/security/keytab/
-    ports:
+    # ports:
     #  - 9870:9870
-     - 9871:9871
-    hostname: hadoop-master
+    # - 9871:9871 через hadoop-client
+    hostname: hadoop-master.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.10
     extra_hosts:
-      - "hadoop-master: 192.168.4.10"
-      - "hadoop-worker1: 192.168.4.11"
-      - "hadoop-worker2: 192.168.4.12"
-      - "hadoop-rmanager: 192.168.4.13"
-      - "hadoop-proxy: 192.168.4.14"
-      - "hadoop-history: 192.168.4.15"
-      - "kdc-server: 192.168.4.20"
+      - "hadoop-master.docker.net: 192.168.4.10"
+      - "hadoop-worker.docker.net1: 192.168.4.11"
+      - "hadoop-worker2.docker.net: 192.168.4.12"
+      - "hadoop-rmanager.docker.net: 192.168.4.13"
+      - "hadoop-proxy.docker.net: 192.168.4.14"
+      - "hadoop-history.docker.net: 192.168.4.15"
+      - "kdc-server.docker.net: 192.168.4.20"
+      - "hadoop-client.docker.net: 192.168.4.100"
     depends_on:
-      - hadoop-kerberos
+      - hadoop-kdc-server
 
   hadoop-worker1:
     build: 
@@ -35,23 +36,24 @@ services:
     volumes:
       - ./Worker/Data1:/usr/local/hadoop/data/dataNode
       - ./KDC/keytabs:/etc/security/keytab/
-    ports:
-      - 1006:1006
-      - 9865:9865
-      - 8042:8042
-      - 8044:8044
-    hostname: hadoop-worker1
+    # ports:
+    #   - 1006:1006
+    #   - 9865:9865
+    #   - 8042:8042
+    #   - 8044:8044 через hadoop-client
+    hostname: hadoop-worker1.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.11
     extra_hosts:
-      - "hadoop-master: 192.168.4.10"
-      - "hadoop-worker1: 192.168.4.11"
-      - "hadoop-worker2: 192.168.4.12"
-      - "hadoop-rmanager: 192.168.4.13"
-      - "hadoop-proxy: 192.168.4.14"
-      - "hadoop-history: 192.168.4.15"
-      - "kdc-server: 192.168.4.20"
+      - "hadoop-master.docker.net: 192.168.4.10"
+      - "hadoop-worker1.docker.net: 192.168.4.11"
+      - "hadoop-worker2.docker.net: 192.168.4.12"
+      - "hadoop-rmanager.docker.net: 192.168.4.13"
+      - "hadoop-proxy.docker.net: 192.168.4.14"
+      - "hadoop-history.docker.net: 192.168.4.15"
+      - "kdc-server.docker.net: 192.168.4.20"
+      - "hadoop-client.docker.net: 192.168.4.100"
     depends_on:
       - hadoop-master
       - hadoop-yarn
@@ -67,18 +69,19 @@ services:
     # ports:
     #   - 9865:9864
     #   - 8043:8042
-    hostname: hadoop-worker2
+    hostname: hadoop-worker2.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.12
     extra_hosts:
-      - "hadoop-master: 192.168.4.10"
-      - "hadoop-worker1: 192.168.4.11"
-      - "hadoop-worker2: 192.168.4.12"
-      - "hadoop-rmanager: 192.168.4.13"
-      - "hadoop-proxy: 192.168.4.14"
-      - "hadoop-history: 192.168.4.15"
-      - "kdc-server: 192.168.4.20"
+      - "hadoop-master.docker.net: 192.168.4.10"
+      - "hadoop-worker1.docker.net: 192.168.4.11"
+      - "hadoop-worker2.docker.net: 192.168.4.12"
+      - "hadoop-rmanager.docker.net: 192.168.4.13"
+      - "hadoop-proxy.docker.net: 192.168.4.14"
+      - "hadoop-history.docker.net: 192.168.4.15"
+      - "kdc-server.docker.net: 192.168.4.20"
+      - "hadoop-client.docker.net: 192.168.4.100"
     depends_on:
       - hadoop-master
       - hadoop-yarn
@@ -90,23 +93,24 @@ services:
     container_name: hadoop-rmanager
     volumes:
       - ./KDC/keytabs:/etc/security/keytab/
-    ports:
-      # - 8088:8088
-      - 8090:8090
-    hostname: hadoop-rmanager
+    # ports:
+    #   # - 8088:8088
+    #   - 8090:8090 через hadoop-client
+    hostname: hadoop-rmanager.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.13
     extra_hosts:
-      - "hadoop-master: 192.168.4.10"
-      - "hadoop-worker1: 192.168.4.11"
-      - "hadoop-worker2: 192.168.4.12"
-      - "hadoop-rmanager: 192.168.4.13"
-      - "hadoop-proxy: 192.168.4.14"
-      - "hadoop-history: 192.168.4.15"
-      - "kdc-server: 192.168.4.20"
+      - "hadoop-master.docker.net: 192.168.4.10"
+      - "hadoop-worker1.docker.net: 192.168.4.11"
+      - "hadoop-worker2.docker.net: 192.168.4.12"
+      - "hadoop-rmanager.docker.net: 192.168.4.13"
+      - "hadoop-proxy.docker.net: 192.168.4.14"
+      - "hadoop-history.docker.net: 192.168.4.15"
+      - "kdc-server.docker.net: 192.168.4.20"
+      - "hadoop-client.docker.net: 192.168.4.100"
     depends_on:
-      - hadoop-kerberos
+      - hadoop-kdc-server
       - hadoop-master
   
   hadoop-proxy:
@@ -116,20 +120,21 @@ services:
     container_name: hadoop-proxy
     volumes:
       - ./KDC/keytabs:/etc/security/keytab/
-    ports:
-    - 9090:9090
-    hostname: hadoop-proxy
+    # ports:
+    # - 9090:9090 через hadoop-client
+    hostname: hadoop-proxy.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.14
     extra_hosts:
-      - "hadoop-master: 192.168.4.10"
-      - "hadoop-worker1: 192.168.4.11"
-      - "hadoop-worker2: 192.168.4.12"
-      - "hadoop-rmanager: 192.168.4.13"
-      - "hadoop-proxy: 192.168.4.14"
-      - "hadoop-history: 192.168.4.15"
-      - "kdc-server: 192.168.4.20"
+      - "hadoop-master.docker.net: 192.168.4.10"
+      - "hadoop-worker1.docker.net: 192.168.4.11"
+      - "hadoop-worker2.docker.net: 192.168.4.12"
+      - "hadoop-rmanager.docker.net: 192.168.4.13"
+      - "hadoop-proxy.docker.net: 192.168.4.14"
+      - "hadoop-history.docker.net: 192.168.4.15"
+      - "kdc-server.docker.net: 192.168.4.20"
+      - "hadoop-client.docker.net: 192.168.4.100"
     depends_on:
       - hadoop-yarn
   
@@ -140,68 +145,83 @@ services:
     container_name: hadoop-history
     volumes:
       - ./KDC/keytabs:/etc/security/keytab/
-    ports:
-      - 19890:19890
-    hostname: hadoop-history
+    # ports:
+    #   - 19890:19890 через hadoop-client
+    hostname: hadoop-history.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.15
     extra_hosts:
-      - "hadoop-master: 192.168.4.10"
-      - "hadoop-worker1: 192.168.4.11"
-      - "hadoop-worker2: 192.168.4.12"
-      - "hadoop-rmanager: 192.168.4.13"
-      - "hadoop-proxy: 192.168.4.14"
-      - "hadoop-history: 192.168.4.15"
-      - "kdc-server: 192.168.4.20"
+      - "hadoop-master.docker.net: 192.168.4.10"
+      - "hadoop-worker1.docker.net: 192.168.4.11"
+      - "hadoop-worker2.docker.net: 192.168.4.12"
+      - "hadoop-rmanager.docker.net: 192.168.4.13"
+      - "hadoop-proxy.docker.net: 192.168.4.14"
+      - "hadoop-history.docker.net: 192.168.4.15"
+      - "kdc-server.docker.net: 192.168.4.20"
+      - "hadoop-client.docker.net: 192.168.4.100"
     depends_on:
       - hadoop-yarn
       - hadoop-master
   
-  hadoop-kerberos:
-    build: ./KDC
+  hadoop-kdc-server:
+    build:
+      context: ./
+      dockerfile: ./KDC/Dockerfile
     volumes:
       - ./KDC/keytabs:/root/keytabs
     container_name: kdc-server
-    hostname: kdc-server
+    hostname: kdc-server.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.20
     extra_hosts:
-      - "hadoop-master: 192.168.4.10"
-      - "hadoop-worker1: 192.168.4.11"
-      - "hadoop-worker2: 192.168.4.12"
-      - "hadoop-rmanager: 192.168.4.13"
-      - "hadoop-proxy: 192.168.4.14"
-      - "hadoop-history: 192.168.4.15"
-      - "kdc-server: 192.168.4.20"
+      - "hadoop-master.docker.net: 192.168.4.10"
+      - "hadoop-worker1.docker.net: 192.168.4.11"
+      - "hadoop-worker2.docker.net: 192.168.4.12"
+      - "hadoop-rmanager.docker.net: 192.168.4.13"
+      - "hadoop-proxy.docker.net: 192.168.4.14"
+      - "hadoop-history.docker.net: 192.168.4.15"
+      - "kdc-server.docker.net: 192.168.4.20"
+      - "hadoop-client.docker.net: 192.168.4.100"
 
   hadoop-client:
-    build: 
+    build:
       context: ./
       dockerfile: ./Client/Dockerfile
     container_name: hadoop-client
-    hostname: hadoop-client
+    hostname: hadoop-client.docker.net
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
     networks:
       docker.net:
         ipv4_address: 192.168.4.100
     extra_hosts:
-      - "hadoop-master: 192.168.4.10"
-      - "hadoop-worker1: 192.168.4.11"
-      - "hadoop-worker2: 192.168.4.12"
-      - "hadoop-rmanager: 192.168.4.13"
-      - "hadoop-proxy: 192.168.4.14"
-      - "hadoop-history: 192.168.4.15"
-      - "kdc-server: 192.168.4.20"
+      - "hadoop-master.docker.net: 192.168.4.10"
+      - "hadoop-worker1.docker.net: 192.168.4.11"
+      - "hadoop-worker2.docker.net: 192.168.4.12"
+      - "hadoop-rmanager.docker.net: 192.168.4.13"
+      - "hadoop-proxy.docker.net: 192.168.4.14"
+      - "hadoop-history.docker.net: 192.168.4.15"
+      - "kdc-server.docker.net: 192.168.4.20"
+      - "hadoop-client.docker.net: 192.168.4.100"
     depends_on:
       - hadoop-yarn
       - hadoop-master
 
 networks:
     docker.net:
+      driver: bridge
+      name: docker.net
       enable_ipv6: false    
       ipam:
-        config: 
-          - subnet: 192.168.4.0/24            
+        driver: default
+        config:
+          - subnet: 192.168.4.0/24
+
+# TODO объединить общую часть файлов конфигураци сервисов и docker-compose
+# LDAP - аутентификация
+# hadoop-client - автозапуск firefox с kinit-ом по keytab-у
+# WebProxy - зачем он нужен, что там за web-интерфейс
+# JobHistory и Data2 - почему-то отваливаются...
+# ApacheRanger и ApacheKnox - не знаю надо ли, можно попробовать настроить
