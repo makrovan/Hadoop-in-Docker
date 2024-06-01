@@ -226,3 +226,4 @@ networks:
 # JobHistory и Data2 - почему-то отваливаются...
 # ApacheRanger и ApacheKnox - не знаю надо ли, можно попробовать настроить
 # Перейти на Docker swarm
+# Исправить readme.md: запуск сервера X: xhost + ${localhost}
