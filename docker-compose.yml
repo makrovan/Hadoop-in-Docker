@@ -225,3 +225,4 @@ networks:
 # WebProxy - зачем он нужен, что там за web-интерфейс
 # JobHistory и Data2 - почему-то отваливаются...
 # ApacheRanger и ApacheKnox - не знаю надо ли, можно попробовать настроить
+# Перейти на Docker swarm
