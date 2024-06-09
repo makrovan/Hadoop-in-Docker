@@ -49,8 +49,12 @@
 		<name>mapreduce.jobhistory.principal</name>
 		<value>jhs/_HOST@DOCKER.NET</value>
 	</property>
-        <property>
-                <name>mapreduce.jobhistory.http.policy</name>
-                <value>HTTPS_ONLY</value>
-        </property>
+    <property>
+            <name>mapreduce.jobhistory.http.policy</name>
+            <value>HTTPS_ONLY</value>
+    </property>
+    <property>
+        <name>mapreduce.jobhistory.webapp.https.address</name>
+        <value>0.0.0.0:19890</value>
+    </property>
 </configuration>
