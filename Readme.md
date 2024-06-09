@@ -154,7 +154,7 @@ Kerberos-сервер развернут на Docker-контейнере [makro
  &emsp;`addent -password -p yarn@DOCKER.NET -k 1 -e aes256-cts` (Password for yarn@DOCKER.NET: hadoop)<br />
  &emsp;`addent -password -p mapred@DOCKER.NET -k 2 -e aes256-cts` (Password for mapred@DOCKER.NET: hadoop)<br />
  &emsp;`wkt /etc/krb5kdc/my.keytab`<br />
- &emsp;`q`<br /><br />
+ &emsp;`q`<br />
 
 Вся остальная конфигурация выполнена внутри [docker-compose.yml](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/docker-compose.yml). Общие конфигурационные файлы в директории [Common](https://github.com/makrovan/Hadoop-in-Docker/tree/792815da32e5fbb38c5fc13c0c509d5451b868c9/Common).
 При первом запуске выполняется [форматирование файловой системы HDFS](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/NameNode/init-script.sh). Файловую систему необходимо проинициализировать файлом `tmp/init-fylesystem`. После этого необходимо отдельно запустить `hadoop-history` через `docker start`.
