@@ -41,7 +41,7 @@ Kerberos-сервер развернут на Docker-контейнере [makro
 В соответствии с [официальной документацией Ubuntu](https://ubuntu.com) на сервере развернут [OpenLDAP c TLS-шифрованием](https://ubuntu.com/server/docs/ldap-and-transport-layer-security-tls):
 - `apt update`
 - `apt install slapd ldap-utils gnutls-bin ssl-cert ca-certificates -y` (Administrator password: hadoop)
-- `certtool --generate-privkey --bits 4096 --outfile /etc/ssl/private/mycakey.pem`
+- `certtool --generate-privkey --bits 4096 --outfile /etc/ssl/private/mycakey.pem`<br />
  `echo "cn = Example Company`<br />
  &emsp;`ca`<br />
  &emsp;`cert_signing_key`<br />
@@ -68,12 +68,12 @@ Kerberos-сервер развернут на Docker-контейнере [makro
 - `slapd -h "ldap:// ldapi://"`
 - `ldapmodify -Y EXTERNAL -H ldapi:/// -f certinfo.ldif`
 - `pkill -f slapd`
-- `slapd -h "ldap:// ldapi:// ldaps://"`
-Для проверки используем: `ldapwhoami -x -ZZ -H ldap://kdc-server.docker.net` и `ldapwhoami -x -H ldaps://kdc-server.docker.net`
+- `slapd -h "ldap:// ldapi:// ldaps://"`<br />
+Для проверки используем: `ldapwhoami -x -ZZ -H ldap://kdc-server.docker.net` и `ldapwhoami -x -H ldaps://kdc-server.docker.net`<br />
 Далее поднят сервер [Kerberos with OpenLDAP backend](#https://ubuntu.com/server/docs/how-to-set-up-kerberos-with-openldap-backend)
 - `apt install krb5-kdc-ldap krb5-admin-server schema2ldif nano -y` (Default Kerberos version 5 realm: DOCKER.NET, Kerberos servers for your realm: kdc-server.docker.net, Administrative server for your Kerberos realm: kdc-server.docker.net)
 - `nano /etc/ldap/schema/kerberos.schema` (Добавляем код из файла [kerberos.schema](https://github.com/makrovan))
--` ldap-schema-manager -i kerberos.schema` (Для проверки используем: `ldapsearch -QLLLY EXTERNAL -H ldapi:/// -b cn=schema,cn=config dn | grep -i kerberos` и `ldapsearch -QLLLY EXTERNAL -H ldapi:/// -b cn={4}kerberos,cn=schema,cn=config | grep NAME | cut -d' ' -f5 | sort`)
+- `ldap-schema-manager -i kerberos.schema` (Для проверки используем: `ldapsearch -QLLLY EXTERNAL -H ldapi:/// -b cn=schema,cn=config dn | grep -i kerberos` и `ldapsearch -QLLLY EXTERNAL -H ldapi:/// -b cn={4}kerberos,cn=schema,cn=config | grep NAME | cut -d' ' -f5 | sort`)
 - `ldapmodify -Q -Y EXTERNAL -H ldapi:/// <<EOF`<br />
  &emsp;`dn: olcDatabase={1}mdb,cn=config`<br />
  &emsp;`add: olcDbIndex`<br />
@@ -119,28 +119,22 @@ Kerberos-сервер развернут на Docker-контейнере [makro
 &emsp;&emsp;*admin_server = kdc-server.docker.net*<br />
 &emsp;&emsp;*default_domain = docker.net*<br />
 &emsp;&emsp;*database_module = openldap_ldapconf*<br />
-&emsp;*}*<br />
-<br />
+&emsp;*}*<br /><br />
 *[dbdefaults]*<br />
-&emsp;*ldap_kerberos_container_dn = cn=krbContainer,dc=docker,dc=net*
-<br />
+&emsp;*ldap_kerberos_container_dn = cn=krbContainer,dc=docker,dc=net*<br />
 *[dbmodules]*<br />
 &emsp;*openldap_ldapconf = {*<br />
-&emsp;&emsp;*db_library = kldap*<br />
-<br />
+&emsp;&emsp;*db_library = kldap*<br /><br />
 &emsp;&emsp;*# if either of these is false, then the ldap_kdc_dn needs to*<br />
 &emsp;&emsp;*# have write access*<br />
 &emsp;&emsp;*disable_last_success = true*<br />
-&emsp;&emsp;*disable_lockout  = true*<br />
-<br />
+&emsp;&emsp;*disable_lockout  = true*<br /><br />
 &emsp;&emsp;*# this object needs to have read rights on*<br />
 &emsp;&emsp;*# the realm container, principal container and realm sub-trees*<br />
-&emsp;&emsp;*ldap_kdc_dn = "uid=kdc-service,dc=docker,dc=net"*<br />
-<br />
+&emsp;&emsp;*ldap_kdc_dn = "uid=kdc-service,dc=docker,dc=net"*<br /><br />
 &emsp;&emsp;*# this object needs to have read and write rights on*<br />
 &emsp;&emsp;*# the realm container, principal container and realm sub-trees*<br />
-&emsp;&emsp;*ldap_kadmind_dn = "uid=kadmin-service,dc=docker,dc=net"*<br /><br />
-<br />
+&emsp;&emsp;*ldap_kadmind_dn = "uid=kadmin-service,dc=docker,dc=net"*<br /><br /><br />
 &emsp;&emsp;*ldap_service_password_file = /etc/krb5kdc/service.keyfile*<br />
 &emsp;&emsp;*ldap_servers = ldapi:///*<br />
 &emsp;&emsp;*ldap_conns_per_server = 5*<br />
