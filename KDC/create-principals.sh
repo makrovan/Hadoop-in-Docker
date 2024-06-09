@@ -26,20 +26,4 @@ kadmin.local -q 'ktadd -norandkey -k rm.service.keytab rm/hadoop-rmanager.docker
 kadmin.local -q 'ktadd -norandkey -k spnego.service.keytab nn/hadoop-master.docker.net@DOCKER.NET nm/hadoop-worker1.docker.net@DOCKER.NET nm/hadoop-worker2.docker.net@DOCKER.NET'
 kadmin.local -q 'ktadd -norandkey -k HTTP.service.keytab HTTP/hadoop-master.docker.net@DOCKER.NET HTTP/hadoop-worker1.docker.net@DOCKER.NET HTTP/hadoop-worker2.docker.net@DOCKER.NET HTTP/hadoop-rmanager.docker.net@DOCKER.NET HTTP/hadoop-history.docker.net@DOCKER.NET HTTP/hadoop-proxy.docker.net@DOCKER.NET'
 
-#echo "hdfs@DOCKER.NET * HTTP/hadoop-master.docker.net@DOCKER.NET" >> /etc/krb5kdc/kadm5.acl
-
-# echo "[logging]
-#     default = FILE:/var/log/krb5.log
-#     kdc = FILE:/var/log/krb5kdc.log
-#     admin_server = FILE:/var/log/kadmin.log
-# " >> /etc/krb5.conf
-
-# echo "
-# [logging]
-#     default = FILE:/var/log/krb5.log
-#     kdc = FILE:/var/log/krb5kdc.log
-#     admin_server = FILE:/var/log/kadmin.log
-# " >> /etc/krb5kdc/kdc.conf
-
-# /etc/init.d/krb5-admin-server restart
-# /etc/init.d/krb5-kdc restart
+cp /etc/krb5kdc/my.keytab .

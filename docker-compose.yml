@@ -3,35 +3,31 @@ version: '0.1'
 services:
   hadoop-master:
     build: 
-      context: ./
-      dockerfile: ./NameNode/Dockerfile
+      target: hadoop-master
     container_name: hadoop-master
     volumes:
       - ./NameNode/Data:/usr/local/hadoop/data/nameNode
       - ./KDC/keytabs:/etc/security/keytab/
-    # ports:
-    #  - 9870:9870
-    # - 9871:9871 через hadoop-client
     hostname: hadoop-master.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.10
-    extra_hosts:
-      - "hadoop-master.docker.net: 192.168.4.10"
-      - "hadoop-worker.docker.net1: 192.168.4.11"
-      - "hadoop-worker2.docker.net: 192.168.4.12"
-      - "hadoop-rmanager.docker.net: 192.168.4.13"
-      - "hadoop-proxy.docker.net: 192.168.4.14"
-      - "hadoop-history.docker.net: 192.168.4.15"
-      - "kdc-server.docker.net: 192.168.4.20"
-      - "hadoop-client.docker.net: 192.168.4.100"
+    extra_hosts: &hosts
+      hadoop-master.docker.net: 192.168.4.10
+      hadoop-worker1.docker.net: 192.168.4.11
+      hadoop-worker2.docker.net: 192.168.4.12
+      hadoop-rmanager.docker.net: 192.168.4.13
+      hadoop-proxy.docker.net: 192.168.4.14
+      hadoop-history.docker.net: 192.168.4.15
+      kdc-server.docker.net: 192.168.4.20
+      hadoop-client.docker.net: 192.168.4.100
+    restart: always
     depends_on:
-      - hadoop-kdc-server
+      - kdc-server
 
   hadoop-worker1:
-    build: 
-      context: ./
-      dockerfile: ./Worker/Dockerfile
+    build:
+      target: hadoop-worker
     container_name: hadoop-worker1
     volumes:
       - ./Worker/Data1:/usr/local/hadoop/data/dataNode
@@ -45,23 +41,14 @@ services:
     networks:
       docker.net:
         ipv4_address: 192.168.4.11
-    extra_hosts:
-      - "hadoop-master.docker.net: 192.168.4.10"
-      - "hadoop-worker1.docker.net: 192.168.4.11"
-      - "hadoop-worker2.docker.net: 192.168.4.12"
-      - "hadoop-rmanager.docker.net: 192.168.4.13"
-      - "hadoop-proxy.docker.net: 192.168.4.14"
-      - "hadoop-history.docker.net: 192.168.4.15"
-      - "kdc-server.docker.net: 192.168.4.20"
-      - "hadoop-client.docker.net: 192.168.4.100"
+    extra_hosts: *hosts
     depends_on:
       - hadoop-master
-      - hadoop-yarn
+      - hadoop-rmanager
 
   hadoop-worker2:
     build: 
-      context: ./
-      dockerfile: ./Worker/Dockerfile
+      target: hadoop-worker
     container_name: hadoop-worker2
     volumes:
       - ./Worker/Data2:/usr/local/hadoop/data/dataNode
@@ -73,101 +60,59 @@ services:
     networks:
       docker.net:
         ipv4_address: 192.168.4.12
-    extra_hosts:
-      - "hadoop-master.docker.net: 192.168.4.10"
-      - "hadoop-worker1.docker.net: 192.168.4.11"
-      - "hadoop-worker2.docker.net: 192.168.4.12"
-      - "hadoop-rmanager.docker.net: 192.168.4.13"
-      - "hadoop-proxy.docker.net: 192.168.4.14"
-      - "hadoop-history.docker.net: 192.168.4.15"
-      - "kdc-server.docker.net: 192.168.4.20"
-      - "hadoop-client.docker.net: 192.168.4.100"
+    extra_hosts: *hosts
     depends_on:
       - hadoop-master
-      - hadoop-yarn
+      - hadoop-rmanager
   
-  hadoop-yarn:
+  hadoop-rmanager:
     build: 
-      context: ./
-      dockerfile: ./ResourceManager/Dockerfile
+      target: hadoop-rmanager
     container_name: hadoop-rmanager
     volumes:
       - ./KDC/keytabs:/etc/security/keytab/
-    # ports:
-    #   # - 8088:8088
-    #   - 8090:8090 через hadoop-client
     hostname: hadoop-rmanager.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.13
-    extra_hosts:
-      - "hadoop-master.docker.net: 192.168.4.10"
-      - "hadoop-worker1.docker.net: 192.168.4.11"
-      - "hadoop-worker2.docker.net: 192.168.4.12"
-      - "hadoop-rmanager.docker.net: 192.168.4.13"
-      - "hadoop-proxy.docker.net: 192.168.4.14"
-      - "hadoop-history.docker.net: 192.168.4.15"
-      - "kdc-server.docker.net: 192.168.4.20"
-      - "hadoop-client.docker.net: 192.168.4.100"
+    extra_hosts: *hosts
+    restart: always
     depends_on:
-      - hadoop-kdc-server
+      - kdc-server
       - hadoop-master
   
   hadoop-proxy:
     build: 
-      context: ./
-      dockerfile: ./WebProxy/Dockerfile
+      target: hadoop-proxy
     container_name: hadoop-proxy
     volumes:
       - ./KDC/keytabs:/etc/security/keytab/
-    # ports:
-    # - 9090:9090 через hadoop-client
     hostname: hadoop-proxy.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.14
-    extra_hosts:
-      - "hadoop-master.docker.net: 192.168.4.10"
-      - "hadoop-worker1.docker.net: 192.168.4.11"
-      - "hadoop-worker2.docker.net: 192.168.4.12"
-      - "hadoop-rmanager.docker.net: 192.168.4.13"
-      - "hadoop-proxy.docker.net: 192.168.4.14"
-      - "hadoop-history.docker.net: 192.168.4.15"
-      - "kdc-server.docker.net: 192.168.4.20"
-      - "hadoop-client.docker.net: 192.168.4.100"
+    extra_hosts: *hosts
     depends_on:
-      - hadoop-yarn
+      - hadoop-rmanager
   
   hadoop-history:
     build: 
-      context: ./
-      dockerfile: ./JobHistory/Dockerfile
+      target: hadoop-history
     container_name: hadoop-history
     volumes:
       - ./KDC/keytabs:/etc/security/keytab/
-    # ports:
-    #   - 19890:19890 через hadoop-client
     hostname: hadoop-history.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.15
-    extra_hosts:
-      - "hadoop-master.docker.net: 192.168.4.10"
-      - "hadoop-worker1.docker.net: 192.168.4.11"
-      - "hadoop-worker2.docker.net: 192.168.4.12"
-      - "hadoop-rmanager.docker.net: 192.168.4.13"
-      - "hadoop-proxy.docker.net: 192.168.4.14"
-      - "hadoop-history.docker.net: 192.168.4.15"
-      - "kdc-server.docker.net: 192.168.4.20"
-      - "hadoop-client.docker.net: 192.168.4.100"
+    extra_hosts: *hosts
     depends_on:
-      - hadoop-yarn
+      - hadoop-rmanager
       - hadoop-master
   
-  hadoop-kdc-server:
+  kdc-server:
     build:
-      context: ./
-      dockerfile: ./KDC/Dockerfile
+      target: hadoop-kdc-server
     volumes:
       - ./KDC/keytabs:/root/keytabs
     container_name: kdc-server
@@ -175,38 +120,23 @@ services:
     networks:
       docker.net:
         ipv4_address: 192.168.4.20
-    extra_hosts:
-      - "hadoop-master.docker.net: 192.168.4.10"
-      - "hadoop-worker1.docker.net: 192.168.4.11"
-      - "hadoop-worker2.docker.net: 192.168.4.12"
-      - "hadoop-rmanager.docker.net: 192.168.4.13"
-      - "hadoop-proxy.docker.net: 192.168.4.14"
-      - "hadoop-history.docker.net: 192.168.4.15"
-      - "kdc-server.docker.net: 192.168.4.20"
-      - "hadoop-client.docker.net: 192.168.4.100"
+    restart: always
+    extra_hosts: *hosts
 
   hadoop-client:
     build:
-      context: ./
-      dockerfile: ./Client/Dockerfile
+      target: hadoop-client
     container_name: hadoop-client
     hostname: hadoop-client.docker.net
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./KDC/keytabs:/etc/security/keytab/
     networks:
       docker.net:
         ipv4_address: 192.168.4.100
-    extra_hosts:
-      - "hadoop-master.docker.net: 192.168.4.10"
-      - "hadoop-worker1.docker.net: 192.168.4.11"
-      - "hadoop-worker2.docker.net: 192.168.4.12"
-      - "hadoop-rmanager.docker.net: 192.168.4.13"
-      - "hadoop-proxy.docker.net: 192.168.4.14"
-      - "hadoop-history.docker.net: 192.168.4.15"
-      - "kdc-server.docker.net: 192.168.4.20"
-      - "hadoop-client.docker.net: 192.168.4.100"
+    extra_hosts: *hosts
     depends_on:
-      - hadoop-yarn
+      - hadoop-rmanager
       - hadoop-master
 
 networks:
@@ -219,12 +149,10 @@ networks:
         config:
           - subnet: 192.168.4.0/24
 
-# TODO объединить общую часть файлов конфигураци сервисов и docker-compose
-# LDAP - аутентификация
-# hadoop-client - автозапуск firefox с kinit-ом по keytab-у
-# WebProxy - зачем он нужен, что там за web-интерфейс
-# JobHistory и Data2 - почему-то отваливаются...
+# TODO:
+# WebProxy - убрать
+# JobHistory - почему-то отваливаются...
+# исправить ссылки в Readme.md
+
 # ApacheRanger и ApacheKnox - не знаю надо ли, можно попробовать настроить
 # Перейти на Docker swarm
-# Исправить readme.md: запуск сервера X: xhost + ${localhost} и настройка браузера:
-# about:config -> network.negotiate-auth.trusted-uris: docker.net
