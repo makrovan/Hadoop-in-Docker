@@ -17,7 +17,7 @@ services:
       hadoop-worker1.docker.net: 192.168.4.11
       hadoop-worker2.docker.net: 192.168.4.12
       hadoop-rmanager.docker.net: 192.168.4.13
-      hadoop-proxy.docker.net: 192.168.4.14
+      # hadoop-proxy.docker.net: 192.168.4.14
       hadoop-history.docker.net: 192.168.4.15
       kdc-server.docker.net: 192.168.4.20
       hadoop-client.docker.net: 192.168.4.100
@@ -80,21 +80,7 @@ services:
     depends_on:
       - kdc-server
       - hadoop-master
-  
-  hadoop-proxy:
-    build: 
-      target: hadoop-proxy
-    container_name: hadoop-proxy
-    volumes:
-      - ./KDC/keytabs:/etc/security/keytab/
-    hostname: hadoop-proxy.docker.net
-    networks:
-      docker.net:
-        ipv4_address: 192.168.4.14
-    extra_hosts: *hosts
-    depends_on:
-      - hadoop-rmanager
-  
+
   hadoop-history:
     build: 
       target: hadoop-history
@@ -150,9 +136,6 @@ networks:
           - subnet: 192.168.4.0/24
 
 # TODO:
-# WebProxy - убрать
-# JobHistory - почему-то отваливаются...
 # исправить ссылки в Readme.md
-
-# ApacheRanger и ApacheKnox - не знаю надо ли, можно попробовать настроить
 # Перейти на Docker swarm
+# ApacheRanger и ApacheKnox - попробовать настроить
