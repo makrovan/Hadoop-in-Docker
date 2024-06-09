@@ -42,29 +42,29 @@ Kerberos-сервер развернут на Docker-контейнере [makro
 - `apt update`
 - `apt install slapd ldap-utils gnutls-bin ssl-cert ca-certificates -y` (Administrator password: hadoop)
 - `certtool --generate-privkey --bits 4096 --outfile /etc/ssl/private/mycakey.pem`
-- `echo "cn = Example Company`
-- &emsp;`ca`
-- &emsp;`cert_signing_key`
-- &emsp;`expiration_days = 3650" >> /etc/ssl/ca.info`
+ `echo "cn = Example Company`
+ &emsp;`ca`
+ &emsp;`cert_signing_key`
+ &emsp;`expiration_days = 3650" >> /etc/ssl/ca.info`
 - `certtool --generate-self-signed --load-privkey /etc/ssl/private/mycakey.pem --template /etc/ssl/ca.info --outfile /usr/local/share/ca-certificates/mycacert.crt`
 - `update-ca-certificates`
 - `certtool --generate-privkey --bits 2048 --outfile /etc/ldap/ldap01_slapd_key.pem`
 - `echo "organization = Example Company`
-- &emsp;`cn = kdc-server.docker.net`
-- &emsp;`tls_www_server`
-- &emsp;`encryption_key`
-- &emsp;`signing_key`
-- &emsp;`expiration_days = 365" >> /etc/ssl/ldap01.info`
+ &emsp;`cn = kdc-server.docker.net`
+ &emsp;`tls_www_server`
+ &emsp;`encryption_key`
+ &emsp;`signing_key`
+ &emsp;`expiration_days = 365" >> /etc/ssl/ldap01.info`
 - `certtool --generate-certificate --load-privkey /etc/ldap/ldap01_slapd_key.pem --load-ca-certificate /etc/ssl/certs/mycacert.pem --load-ca-privkey /etc/ssl/private/mycakey.pem --template /etc/ssl/ldap01.info --outfile /etc/ldap/ldap01_slapd_cert.pem`
 - `echo "dn: cn=config`
-- &emsp;`add: olcTLSCACertificateFile`
-- &emsp;`olcTLSCACertificateFile: /etc/ssl/certs/mycacert.pem`
-- &emsp;`-`
-- &emsp;`add: olcTLSCertificateFile`
-- &emsp;`olcTLSCertificateFile: /etc/ldap/ldap01_slapd_cert.pem`
-- &emsp;`-`
-- &emsp;`add: olcTLSCertificateKeyFile`
-- &emsp;`olcTLSCertificateKeyFile: /etc/ldap/ldap01_slapd_key.pem" >> certinfo.ldif`
+ &emsp;`add: olcTLSCACertificateFile`
+ &emsp;`olcTLSCACertificateFile: /etc/ssl/certs/mycacert.pem`
+ &emsp;`-`
+ &emsp;`add: olcTLSCertificateFile`
+ &emsp;`olcTLSCertificateFile: /etc/ldap/ldap01_slapd_cert.pem`
+ &emsp;`-`
+ &emsp;`add: olcTLSCertificateKeyFile`
+ &emsp;`olcTLSCertificateKeyFile: /etc/ldap/ldap01_slapd_key.pem" >> certinfo.ldif`
 - `slapd -h "ldap:// ldapi://"`
 - `ldapmodify -Y EXTERNAL -H ldapi:/// -f certinfo.ldif`
 - `pkill -f slapd`
@@ -75,42 +75,42 @@ Kerberos-сервер развернут на Docker-контейнере [makro
 - `nano /etc/ldap/schema/kerberos.schema` (Добавляем код из файла [kerberos.schema](https://github.com/makrovan))
 -` ldap-schema-manager -i kerberos.schema` (Для проверки используем: `ldapsearch -QLLLY EXTERNAL -H ldapi:/// -b cn=schema,cn=config dn | grep -i kerberos` и `ldapsearch -QLLLY EXTERNAL -H ldapi:/// -b cn={4}kerberos,cn=schema,cn=config | grep NAME | cut -d' ' -f5 | sort`)
 - `ldapmodify -Q -Y EXTERNAL -H ldapi:/// <<EOF`
-- &emsp;`dn: olcDatabase={1}mdb,cn=config`
-- &emsp;`add: olcDbIndex`
-- &emsp;`olcDbIndex: krbPrincipalName eq,pres,sub`
-- &emsp;`EOF`
+ &emsp;`dn: olcDatabase={1}mdb,cn=config`
+ &emsp;`add: olcDbIndex`
+ &emsp;`olcDbIndex: krbPrincipalName eq,pres,sub`
+ &emsp;`EOF`
 - `ldapadd -x -D cn=admin,dc=docker,dc=net -W <<EOF`
-- &emsp;`dn: uid=kdc-service,dc=docker,dc=net`
-- &emsp;`uid: kdc-service`
-- &emsp;`objectClass: account`
-- &emsp;`objectClass: simpleSecurityObject`
-- &emsp;`userPassword: {CRYPT}x`
-- &emsp;`description: Account used for the Kerberos KDC`<br /><br />
-- &emsp;`dn: uid=kadmin-service,dc=docker,dc=net`
-- &emsp;`uid: kadmin-service`
-- &emsp;`objectClass: account`
-- &emsp;`objectClass: simpleSecurityObject`
-- &emsp;`userPassword: {CRYPT}x`
-- &emsp;`description: Account used for the Kerberos Admin server`
-- &emsp;`EOF`
+ &emsp;`dn: uid=kdc-service,dc=docker,dc=net`
+ &emsp;`uid: kdc-service`
+ &emsp;`objectClass: account`
+ &emsp;`objectClass: simpleSecurityObject`
+ &emsp;`userPassword: {CRYPT}x`
+ &emsp;`description: Account used for the Kerberos KDC`<br /><br />
+ &emsp;`dn: uid=kadmin-service,dc=docker,dc=net`
+ &emsp;`uid: kadmin-service`
+ &emsp;`objectClass: account`
+ &emsp;`objectClass: simpleSecurityObject`
+ &emsp;`userPassword: {CRYPT}x`
+ &emsp;`description: Account used for the Kerberos Admin server`
+ &emsp;`EOF`
 (Enter LDAP Password: hadoop)
 - `ldappasswd -x -D cn=admin,dc=docker,dc=net -W -S uid=kdc-service,dc=docker,dc=net` (New password: hadoop; Enter LDAP Password: hadoop) Для проверки: `ldapwhoami -x -D uid=kdc-service,dc=docker,dc=net -W` (Enter LDAP Password: hadoop)
 - `ldappasswd -x -D cn=admin,dc=docker,dc=net -W -S uid=kadmin-service,dc=docker,dc=net` (New password: hadoop; Enter LDAP Password: hadoop) Для проверки: `ldapwhoami -x -D uid=kadmin-service,dc=docker,dc=net -W` (Enter LDAP Password: hadoop)
 - `ldapmodify -Q -Y EXTERNAL -H ldapi:/// <<EOF`
-- &emsp;`dn: olcDatabase={1}mdb,cn=config`
-- &emsp;`add: olcAccess`
-- &emsp;`olcAccess: {2}to attrs=krbPrincipalKey`
-- &emsp;`  by anonymous auth`
-- &emsp;`  by dn.exact="uid=kdc-service,dc=docker,dc=net" read`
-- &emsp;`  by dn.exact="uid=kadmin-service,dc=docker,dc=net" write`
-- &emsp;`  by self write`
-- &emsp;`  by * none`<br /><br />
-- &emsp;`add: olcAccess`
-- &emsp;`olcAccess: {3}to dn.subtree="cn=krbContainer,dc=docker,dc=net"`
-- &emsp;`  by dn.exact="uid=kdc-service,dc=docker,dc=net" read`
-- &emsp;`  by dn.exact="uid=kadmin-service,dc=docker,dc=net" write`
-- &emsp;`  by * none`
-- `EOF`
+ &emsp;`dn: olcDatabase={1}mdb,cn=config`
+ &emsp;`add: olcAccess`
+ &emsp;`olcAccess: {2}to attrs=krbPrincipalKey`
+ &emsp;`  by anonymous auth`
+ &emsp;`  by dn.exact="uid=kdc-service,dc=docker,dc=net" read`
+ &emsp;`  by dn.exact="uid=kadmin-service,dc=docker,dc=net" write`
+ &emsp;`  by self write`
+ &emsp;`  by * none`<br /><br />
+ &emsp;`add: olcAccess`
+ &emsp;`olcAccess: {3}to dn.subtree="cn=krbContainer,dc=docker,dc=net"`
+ &emsp;`  by dn.exact="uid=kdc-service,dc=docker,dc=net" read`
+ &emsp;`  by dn.exact="uid=kadmin-service,dc=docker,dc=net" write`
+ &emsp;`  by * none`
+ `EOF`
 Для проверки: `slapcat -b cn=config`
 - `nano /etc/krb5.conf` Здесь добавляем код:<br />
 *[realms]*<br />
@@ -156,11 +156,11 @@ Kerberos-сервер развернут на Docker-контейнере [makro
 - `kadmin.local -q 'addprinc yarn'` (Enter password for principal "yarn@DOCKER.NET": hadoop)
 - `kadmin.local -q 'addprinc mapred'` (Enter password for principal "mapred@DOCKER.NET": hadoop)
 - `ktutil`
-- &emsp;`addent -password -p hdfs@DOCKER.NET -k 0 -e aes256-cts` (Password for hdfs@DOCKER.NET: hadoop)
-- &emsp;`addent -password -p yarn@DOCKER.NET -k 1 -e aes256-cts` (Password for yarn@DOCKER.NET: hadoop)
-- &emsp;`addent -password -p mapred@DOCKER.NET -k 2 -e aes256-cts` (Password for mapred@DOCKER.NET: hadoop)
-- &emsp;`wkt /etc/krb5kdc/my.keytab`
-- &emsp;`q`
+ &emsp;`addent -password -p hdfs@DOCKER.NET -k 0 -e aes256-cts` (Password for hdfs@DOCKER.NET: hadoop)
+ &emsp;`addent -password -p yarn@DOCKER.NET -k 1 -e aes256-cts` (Password for yarn@DOCKER.NET: hadoop)
+ &emsp;`addent -password -p mapred@DOCKER.NET -k 2 -e aes256-cts` (Password for mapred@DOCKER.NET: hadoop)
+ &emsp;`wkt /etc/krb5kdc/my.keytab`
+ &emsp;`q`&emsp;
 Вся остальная конфигурация выполнена внутри [docker-compose.yml](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/docker-compose.yml). Общие конфигурационные файлы в директории [Common](https://github.com/makrovan/Hadoop-in-Docker/tree/792815da32e5fbb38c5fc13c0c509d5451b868c9/Common).
 При первом запуске выполняется [форматирование файловой системы HDFS](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/NameNode/init-script.sh). Файловую систему необходимо проинициализировать файлом `tmp/init-fylesystem`. После этого необходимо отдельно запустить hadoop-history через `docker start`.
 Принципалы hdfs, yarn и mapred создаются в docker-контейнере, пароли задаются вручную. Для сервисов принципалыи keytab-ы создаются каждый раз при загрузке контейнера, передаются через папку `\KDC\keytabs`

@@ -17,7 +17,6 @@ services:
       hadoop-worker1.docker.net: 192.168.4.11
       hadoop-worker2.docker.net: 192.168.4.12
       hadoop-rmanager.docker.net: 192.168.4.13
-      # hadoop-proxy.docker.net: 192.168.4.14
       hadoop-history.docker.net: 192.168.4.15
       kdc-server.docker.net: 192.168.4.20
       hadoop-client.docker.net: 192.168.4.100
@@ -32,11 +31,6 @@ services:
     volumes:
       - ./Worker/Data1:/usr/local/hadoop/data/dataNode
       - ./KDC/keytabs:/etc/security/keytab/
-    # ports:
-    #   - 1006:1006
-    #   - 9865:9865
-    #   - 8042:8042
-    #   - 8044:8044 через hadoop-client
     hostname: hadoop-worker1.docker.net
     networks:
       docker.net:
@@ -53,9 +47,6 @@ services:
     volumes:
       - ./Worker/Data2:/usr/local/hadoop/data/dataNode
       - ./KDC/keytabs:/etc/security/keytab/
-    # ports:
-    #   - 9865:9864
-    #   - 8043:8042
     hostname: hadoop-worker2.docker.net
     networks:
       docker.net:
