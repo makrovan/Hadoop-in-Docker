@@ -149,12 +149,13 @@ Kerberos-сервер развернут на Docker-контейнере [makro
 - `kadmin.local -q 'addprinc hdfs'` (Enter password for principal "hdfs@DOCKER.NET": hadoop)
 - `kadmin.local -q 'addprinc yarn'` (Enter password for principal "yarn@DOCKER.NET": hadoop)
 - `kadmin.local -q 'addprinc mapred'` (Enter password for principal "mapred@DOCKER.NET": hadoop)
-- `ktutil`
+- `ktutil`<br />
  &emsp;`addent -password -p hdfs@DOCKER.NET -k 0 -e aes256-cts` (Password for hdfs@DOCKER.NET: hadoop)<br />
  &emsp;`addent -password -p yarn@DOCKER.NET -k 1 -e aes256-cts` (Password for yarn@DOCKER.NET: hadoop)<br />
  &emsp;`addent -password -p mapred@DOCKER.NET -k 2 -e aes256-cts` (Password for mapred@DOCKER.NET: hadoop)<br />
  &emsp;`wkt /etc/krb5kdc/my.keytab`<br />
- &emsp;`q`<br />
+ &emsp;`q`<br /><br />
+
 Вся остальная конфигурация выполнена внутри [docker-compose.yml](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/docker-compose.yml). Общие конфигурационные файлы в директории [Common](https://github.com/makrovan/Hadoop-in-Docker/tree/792815da32e5fbb38c5fc13c0c509d5451b868c9/Common).
 При первом запуске выполняется [форматирование файловой системы HDFS](https://github.com/makrovan/Hadoop-in-Docker/blob/792815da32e5fbb38c5fc13c0c509d5451b868c9/NameNode/init-script.sh). Файловую систему необходимо проинициализировать файлом `tmp/init-fylesystem`. После этого необходимо отдельно запустить hadoop-history через `docker start`.
 Принципалы hdfs, yarn и mapred создаются в docker-контейнере, пароли задаются вручную. Для сервисов принципалыи keytab-ы создаются каждый раз при загрузке контейнера, передаются через папку `\KDC\keytabs`
