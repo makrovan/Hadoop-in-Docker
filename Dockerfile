@@ -29,10 +29,6 @@ FROM hadoop-image as hadoop-worker
 COPY --chown=root:root --chmod=700 ./Worker/init-script.sh /root/init-script.sh
 ENTRYPOINT [ "/root/init-script.sh" ]
 
-FROM hadoop-image as hadoop-proxy
-USER yarn
-ENTRYPOINT [ "/usr/local/hadoop/bin/yarn", "proxyserver"]
-
 FROM hadoop-image as hadoop-history
 USER mapred
 ENTRYPOINT [ "/usr/local/hadoop/bin/mapred", "historyserver"]
