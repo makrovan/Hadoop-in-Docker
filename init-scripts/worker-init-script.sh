@@ -2,9 +2,11 @@
 
 apt update && apt install sudo -y
 
-# mkdir /usr/local/hadoop/logs
-# chown hdfs:hadoop /usr/local/hadoop/logs
-# chmod g+rwx /usr/local/hadoop/logs
+while [ `ls /etc/security/keytab | wc -l` -eq 0 ]
+do
+    sleep 5
+    echo "waiting /etc/security/keytab..."
+done
 
 # Start NodeManager - the first process
 sudo -u yarn /usr/local/hadoop/bin/yarn nodemanager &
