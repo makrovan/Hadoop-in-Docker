@@ -1,7 +1,3 @@
-/KDC/keytabs/
-/NameNode/Data/
-/Worker/Data1/
-/Worker/Data2/
-draft.sh
+/Data
 **/.DS_Store
 /back

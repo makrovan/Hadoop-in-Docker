@@ -6,8 +6,8 @@ services:
       target: hadoop-master
     container_name: hadoop-master
     volumes:
-      - ./NameNode/Data:/usr/local/hadoop/data/nameNode
-      - ./KDC/keytabs:/etc/security/keytab/
+      - ./Data/NameNode:/usr/local/hadoop/data/nameNode
+      - ./Data/KDC/keytabs:/etc/security/keytab/
     hostname: hadoop-master.docker.net
     networks:
       docker.net:
@@ -18,50 +18,51 @@ services:
       hadoop-worker2.docker.net: 192.168.4.12
       hadoop-rmanager.docker.net: 192.168.4.13
       hadoop-history.docker.net: 192.168.4.15
+      ldap-server.docker.net: 192.168.4.19
       kdc-server.docker.net: 192.168.4.20
       hadoop-client.docker.net: 192.168.4.100
     restart: always
     depends_on:
       - kdc-server
+      - hadoop-worker1
+      - hadoop-worker2
 
   hadoop-worker1:
     build:
       target: hadoop-worker
     container_name: hadoop-worker1
     volumes:
-      - ./Worker/Data1:/usr/local/hadoop/data/dataNode
-      - ./KDC/keytabs:/etc/security/keytab/
+      - ./Data/Worker1:/usr/local/hadoop/data/dataNode
+      - ./Data/KDC/keytabs:/etc/security/keytab/
     hostname: hadoop-worker1.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.11
     extra_hosts: *hosts
     depends_on:
-      - hadoop-master
-      - hadoop-rmanager
+      - kdc-server
 
   hadoop-worker2:
     build: 
       target: hadoop-worker
     container_name: hadoop-worker2
     volumes:
-      - ./Worker/Data2:/usr/local/hadoop/data/dataNode
-      - ./KDC/keytabs:/etc/security/keytab/
+      - ./Data/Worker2:/usr/local/hadoop/data/dataNode
+      - ./Data/KDC/keytabs:/etc/security/keytab/
     hostname: hadoop-worker2.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.12
     extra_hosts: *hosts
     depends_on:
-      - hadoop-master
-      - hadoop-rmanager
-  
+      - kdc-server
+        
   hadoop-rmanager:
     build: 
       target: hadoop-rmanager
     container_name: hadoop-rmanager
     volumes:
-      - ./KDC/keytabs:/etc/security/keytab/
+      - ./Data/KDC/keytabs:/etc/security/keytab/
     hostname: hadoop-rmanager.docker.net
     networks:
       docker.net:
@@ -77,21 +78,22 @@ services:
       target: hadoop-history
     container_name: hadoop-history
     volumes:
-      - ./KDC/keytabs:/etc/security/keytab/
+      - ./Data/KDC/keytabs:/etc/security/keytab/
     hostname: hadoop-history.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.4.15
     extra_hosts: *hosts
+    restart: always
     depends_on:
       - hadoop-rmanager
-      - hadoop-master
   
   kdc-server:
     build:
       target: hadoop-kdc-server
     volumes:
-      - ./KDC/keytabs:/root/keytabs
+      - ./Data/KDC/keytabs:/root/keytabs
+      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
     container_name: kdc-server
     hostname: kdc-server.docker.net
     networks:
@@ -99,7 +101,22 @@ services:
         ipv4_address: 192.168.4.20
     restart: always
     extra_hosts: *hosts
+    depends_on:
+      - ldap-server
 
+  ldap-server:
+    build:
+      target: hadoop-ldap-server
+    volumes:
+      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
+    container_name: ldap-server
+    hostname: ldap-server.docker.net
+    networks:
+      docker.net:
+        ipv4_address: 192.168.4.19
+    restart: always
+    extra_hosts: *hosts
+    
   hadoop-client:
     build:
       target: hadoop-client
@@ -107,13 +124,12 @@ services:
     hostname: hadoop-client.docker.net
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
-      - ./KDC/keytabs:/etc/security/keytab/
+      - ./Data/KDC/keytabs:/etc/security/keytab/
     networks:
       docker.net:
         ipv4_address: 192.168.4.100
     extra_hosts: *hosts
     depends_on:
-      - hadoop-rmanager
       - hadoop-master
 
 networks:
@@ -130,3 +146,6 @@ networks:
 # исправить ссылки в Readme.md
 # Перейти на Docker swarm
 # ApacheRanger и ApacheKnox - попробовать настроить
+# Поднять syslogd на OLDAP-сервере, настроить систему логирования
+# вынести OLDAP в отдельный сервис
+# настроить керберизацию ApacheRanger

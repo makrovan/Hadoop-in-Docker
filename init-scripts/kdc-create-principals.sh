@@ -3,6 +3,7 @@
 cd /root/keytabs
 rm *.keytab
 
+#services principals
 kadmin.local -q 'addprinc -randkey nn/hadoop-master.docker.net@DOCKER.NET'
 kadmin.local -q 'addprinc -randkey dn/hadoop-worker1.docker.net@DOCKER.NET'
 kadmin.local -q 'addprinc -randkey dn/hadoop-worker2.docker.net@DOCKER.NET'
@@ -26,4 +27,10 @@ kadmin.local -q 'ktadd -norandkey -k rm.service.keytab rm/hadoop-rmanager.docker
 kadmin.local -q 'ktadd -norandkey -k spnego.service.keytab nn/hadoop-master.docker.net@DOCKER.NET nm/hadoop-worker1.docker.net@DOCKER.NET nm/hadoop-worker2.docker.net@DOCKER.NET'
 kadmin.local -q 'ktadd -norandkey -k HTTP.service.keytab HTTP/hadoop-master.docker.net@DOCKER.NET HTTP/hadoop-worker1.docker.net@DOCKER.NET HTTP/hadoop-worker2.docker.net@DOCKER.NET HTTP/hadoop-rmanager.docker.net@DOCKER.NET HTTP/hadoop-history.docker.net@DOCKER.NET HTTP/hadoop-proxy.docker.net@DOCKER.NET'
 
-cp /etc/krb5kdc/my.keytab .
+#user principals
+kadmin.local -q 'addprinc -randkey hdfs@DOCKER.NET'
+kadmin.local -q 'addprinc -randkey yarn@DOCKER.NET'
+kadmin.local -q 'addprinc -randkey mapred@DOCKER.NET'
+kadmin.local -q 'ktadd -norandkey -k my.keytab hdfs@DOCKER.NET yarn@DOCKER.NET mapred@DOCKER.NET'
+
+# cp /etc/krb5kdc/my.keytab .
