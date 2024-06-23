@@ -15,6 +15,7 @@ sudo -u yarn /usr/local/hadoop/bin/yarn nodemanager &
 sudo -u hdfs /usr/local/hadoop/bin/hdfs datanode &
 
 # Wait for any process to exit
+# https://www.gnu.org/software/bash/manual/html_node/Job-Control-Builtins.html#index-wait
 wait -n
 
 # Exit with status of process that exited first

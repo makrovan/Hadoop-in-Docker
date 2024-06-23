@@ -131,6 +131,18 @@ services:
     extra_hosts: *hosts
     depends_on:
       - hadoop-master
+    
+  hadoop-ranger:
+    build: 
+      target: hadoop-ranger
+    container_name: hadoop-ranger
+    hostname: hadoop-ranger.docker.net
+    volumes:
+      - ./Data/Ranger:/usr/local/ranger/
+    networks:
+      docker.net:
+        ipv4_address: 192.168.4.18
+    extra_hosts: *hosts
 
 networks:
     docker.net:
@@ -143,9 +155,8 @@ networks:
           - subnet: 192.168.4.0/24
 
 # TODO:
+# проверить wait -n на worker-ах
 # исправить ссылки в Readme.md
 # Перейти на Docker swarm
 # ApacheRanger и ApacheKnox - попробовать настроить
-# Поднять syslogd на OLDAP-сервере, настроить систему логирования
-# вынести OLDAP в отдельный сервис
 # настроить керберизацию ApacheRanger

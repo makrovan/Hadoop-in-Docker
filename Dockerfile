@@ -47,3 +47,8 @@ RUN apk add firefox fontconfig ttf-freefont font-noto terminus-font krb5
 COPY ./Common/krb5.conf /etc/krb5.conf
 COPY --chown=root:root --chmod=700 ./init-scripts/client-start.sh /home/start.sh
 ENTRYPOINT [ "/home/start.sh" ]
+
+FROM hadoop-image as hadoop-ranger
+VOLUME [ "/usr/local/ranger" ]
+COPY --chown=root:root --chmod=777 ./init-scripts/ranger-init-script-tmp.sh /tmp/init-script.sh
+ENTRYPOINT [ "/tmp/init-script.sh" ]
