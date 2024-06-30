@@ -33,4 +33,5 @@ kadmin.local -q 'addprinc -randkey yarn@DOCKER.NET'
 kadmin.local -q 'addprinc -randkey mapred@DOCKER.NET'
 kadmin.local -q 'ktadd -norandkey -k my.keytab hdfs@DOCKER.NET yarn@DOCKER.NET mapred@DOCKER.NET'
 
+chmod g+r ./*
 # cp /etc/krb5kdc/my.keytab .
