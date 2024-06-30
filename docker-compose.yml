@@ -1,4 +1,4 @@
-version: '0.1'
+version: '1.1'
 
 services:
   hadoop-master:
@@ -122,8 +122,11 @@ services:
       target: hadoop-client
     container_name: hadoop-client
     hostname: hadoop-client.docker.net
+    privileged: true
+    environment:
+      - DISPLAY=$DISPLAY
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
       - ./Data/KDC/keytabs:/etc/security/keytab/
     networks:
       docker.net:
@@ -132,17 +135,17 @@ services:
     depends_on:
       - hadoop-master
     
-  hadoop-ranger:
-    build: 
-      target: hadoop-ranger
-    container_name: hadoop-ranger
-    hostname: hadoop-ranger.docker.net
-    volumes:
-      - ./Data/Ranger:/usr/local/ranger/
-    networks:
-      docker.net:
-        ipv4_address: 192.168.4.18
-    extra_hosts: *hosts
+  # hadoop-ranger:
+  #   build: 
+  #     target: hadoop-ranger
+  #   container_name: hadoop-ranger
+  #   hostname: hadoop-ranger.docker.net
+  #   volumes:
+  #     - ./Data/Ranger:/usr/local/ranger/
+  #   networks:
+  #     docker.net:
+  #       ipv4_address: 192.168.4.18
+  #   extra_hosts: *hosts
 
 networks:
     docker.net:
@@ -153,6 +156,8 @@ networks:
         driver: default
         config:
           - subnet: 192.168.4.0/24
+
+# xhost + ${localhost}
 
 # TODO:
 # проверить wait -n на worker-ах

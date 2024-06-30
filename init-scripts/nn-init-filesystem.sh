@@ -1,13 +1,5 @@
 #!/bin/bash
 
-kinit -k -t /etc/security/keytab/my.keytab hdfs@DOCKER.NET 
-while [ $? -ne 0 ]
-do
-    sleep 5
-    echo "waiting kinit..."
-    kinit -k -t /etc/security/keytab/my.keytab hdfs@DOCKER.NET 
-done
-
 /usr/local/hadoop/bin/hdfs dfs -ls /
 while [ $? -ne 0 ]
 do
@@ -49,6 +41,5 @@ done
 /usr/local/hadoop/bin/hdfs dfs -chown hdfs:hadoop /
 
 kdestroy
-
 echo "directory maked!!!"
 
