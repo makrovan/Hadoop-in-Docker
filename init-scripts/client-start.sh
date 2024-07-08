@@ -11,7 +11,9 @@ done
 firefox about:config \
     https://hadoop-master.docker.net:9871 \
     https://hadoop-rmanager.docker.net:8090 \
-    https://hadoop-history.docker.net:19890
+    https://hadoop-history.docker.net:19890 \
+    http://hadoop-solr.docker.net:6083 \
+    http://hadoop-ranger.docker.net:6080
 
-sleep infinity&
-wait $!
+# sleep infinity&
+# wait $!

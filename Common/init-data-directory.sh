@@ -1,6 +1,7 @@
 #!/bin/bash
+#run with sudo
 
-sudo rm -r -f ./Data/
+rm -r -f ./Data/
 
 mkdir -p ./Data/NameNode
 mkdir -p ./Data/Worker1
@@ -10,8 +11,12 @@ chmod 700 ./Data/NameNode
 chmod 700 ./Data/Worker1
 chmod 700 ./Data/Worker2
 
-sudo chown 101000:101000 -R ./Data/NameNode
-sudo chown 101000:101000 -R ./Data/Worker1
-sudo chown 101000:101000 -R ./Data/Worker2
+chown 1001:1001 -R ./Data/NameNode
+chown 1001:1001 -R ./Data/Worker1
+chown 1001:1001 -R ./Data/Worker2
 
-# xhost + ${localhost}
+mkdir -p ./Data/Postgres/Data
+chmod 700 ./Data/Postgres/Data
+chown 999:999 -R ./Data/Postgres/Data
+
+xhost +
