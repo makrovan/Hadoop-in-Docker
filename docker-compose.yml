@@ -180,6 +180,7 @@ services:
     hostname: hadoop-ranger.docker.net
     volumes:
       - ./Data/KDC/keytabs:/etc/security/keytab/
+      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
       - ./Config/Hadoop:/etc/hadoop/conf
     networks:
       docker.net:
