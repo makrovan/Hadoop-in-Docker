@@ -7,10 +7,10 @@ do
 done
 
     cd /etc/krb5kdc/keyfiles/kdc-ssl
-    mv kdc_slapd_cert.pem kdc_slapd_key.pem /etc/ldap
-    mv mycacert.pem /usr/local/share/ca-certificates/mycacert.crt
+    cp kdc_slapd_cert.pem kdc_slapd_key.pem /etc/ldap
+    cp mycacert.pem /usr/local/share/ca-certificates/mycacert.crt
     update-ca-certificates
-    mv /etc/krb5kdc/keyfiles/stash /etc/krb5kdc/
+    cp /etc/krb5kdc/keyfiles/stash /etc/krb5kdc/
 
 # kadmind
 # wait /tmp/create-principals.sh

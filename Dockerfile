@@ -49,7 +49,7 @@ COPY ./Config/Kerberos/krb5.conf /etc/krb5.conf
 COPY --chown=root:root --chmod=700 ./init-scripts/client-start.sh /home/start.sh
 ENTRYPOINT [ "/home/start.sh" ]
 
-FROM ubuntu AS java-image
+FROM ubuntu:20.04 AS java-image
 ARG DEBIAN_FRONTEND=noninteractive
 # https://stackoverflow.com/questions/24991136/docker-build-could-not-resolve-archive-ubuntu-com-apt-get-fails-to-install-a
 RUN apt-get update && apt-get install -y openjdk-8-jdk libpostgresql-jdbc-java krb5-user
@@ -59,16 +59,18 @@ ENV PATH=$PATH:$JAVA_HOME/bin
 
 FROM java-image AS hadoop-solr
 RUN apt-get update && apt-get install -y wget lsof
-COPY ./Common/solr_for_audit_setup.tgz /usr/local
+COPY ./distr/solr_for_audit_setup.tgz /usr/local
 COPY ./Config/Solr/install.properties /tmp/install.properties
 COPY --chmod=777 ./init-scripts/solr-init-script.sh /tmp/init-script.sh
 ENTRYPOINT [ "/tmp/init-script.sh" ]
 
 FROM java-image AS hadoop-ranger
-RUN apt-get update && apt-get install -y python3
+RUN apt-get update && apt-get install -y python
 VOLUME [ "/etc/security/keytab/" ]
 VOLUME [ "/etc/hadoop/conf" ]
-COPY ./Common/ranger-2.4.0-admin.tar.gz /usr/local/ranger-2.4.0-admin.tar.gz
-COPY ./Config/Ranger/install.properties /tmp/install.properties
+COPY ./distr/ranger-2.4.0-admin.tar.gz /usr/local/ranger-2.4.0-admin.tar.gz
+COPY ./Config/Ranger/admin/install.properties /tmp/admin/install.properties
+COPY ./distr/ranger-2.4.0-usersync.tar.gz /usr/local/ranger-2.4.0-usersync.tar.gz
+COPY ./Config/Ranger/usersync/install.properties /tmp/usersync/install.properties
 COPY --chown=root:root --chmod=777 ./init-scripts/ranger-init-script.sh /tmp/init-script.sh
 ENTRYPOINT [ "/tmp/init-script.sh" ]
