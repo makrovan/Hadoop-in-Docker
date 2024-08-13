@@ -1,0 +1,31 @@
+#!/bin/expect -f
+set timeout -1
+spawn /opt/setup.sh
+
+# apt update && apt install -y slapd gnutls-bin ssl-cert ca-certificates rsyslog schema2ldif 
+expect "Administrator password: "
+send -- "hadoop\r"
+expect "Confirm password: "
+send -- "hadoop\r"
+
+# ldapadd -x -D cn=admin,dc=docker,dc=net -W <<EOF
+expect "Enter LDAP Password:"
+send -- "hadoop\r"
+
+# ldappasswd -x -D cn=admin,dc=docker,dc=net -W -S uid=kdc-service,dc=docker,dc=net
+expect "New password: "
+send -- "hadoop\r"
+expect "Re-enter new password: "
+send -- "hadoop\r"
+expect "Enter LDAP Password: "
+send -- "hadoop\r"
+
+# ldappasswd -x -D cn=admin,dc=docker,dc=net -W -S uid=kadmin-service,dc=docker,dc=net
+expect "New password: "
+send -- "hadoop\r"
+expect "Re-enter new password: "
+send -- "hadoop\r"
+expect "Enter LDAP Password: "
+send -- "hadoop\r"
+
+expect eof

@@ -1,9 +1,13 @@
 #!/bin/bash
 
-#https://ubuntu.com/server/docs/ldap-and-transport-layer-security-tls
+# https://ubuntu.com/server/docs/ldap-and-transport-layer-security-tls
+# https://ubuntu.com/server/docs/how-to-set-up-kerberos-with-openldap-backend
 
-apt update && apt install slapd gnutls-bin ssl-cert ca-certificates rsyslog krb5-kdc-ldap nano schema2ldif ldap-utils -y 
-# ldap-utils кажется не нужны - надо пробовать - это для строковых утилит по работе с LDAP
+# kdc-server будет ждать, пока в этой папке не появится корневой сертификат
+rm -rf /etc/krb5kdc/keyfiles/*
+
+# docker run -it --hostname ldap-server.docker.net ubuntu /bin/bash
+apt update && apt install -y slapd gnutls-bin ssl-cert ca-certificates rsyslog schema2ldif 
 #Administrator password: hadoop
 
 #Default Kerberos version 5 realm: DOCKER.NET
@@ -79,31 +83,29 @@ slapd -h "ldap:// ldapi://"
 ldapmodify -Y EXTERNAL -H ldapi:/// -f certinfo.ldif
 
 # ---------------------------Kerberos-клиент-сертификат (ключи)-------------------------------------------------------------------------------
-mkdir kdc-ssl
-cd kdc-ssl
+# cd kdc-ssl
 
 # Создаем секретный ключ потребителя (consumer):
-certtool --generate-privkey --bits 2048 --outfile kdc_slapd_key.pem
+# certtool --generate-privkey --bits 2048 --outfile kdc_slapd_key.pem
 
 # Создаем информационный файл ldap02.info для сервера Потребителя
-echo "organization = Docker Net
-cn = kdc.docker.net
-tls_www_server
-encryption_key
-signing_key
-expiration_days = 365" >> kdc.info
+# echo "organization = Docker Net
+# cn = kdc.docker.net
+# tls_www_server
+# encryption_key
+# signing_key
+# expiration_days = 365" >> kdc.info
 
 # Создаем сертификат Потребителя:
-certtool --generate-certificate \
---load-privkey kdc_slapd_key.pem \
---load-ca-certificate /etc/ssl/certs/mycacert.pem \
---load-ca-privkey /etc/ssl/private/mycakey.pem \
---template kdc.info \
---outfile kdc_slapd_cert.pem
-cp /etc/ssl/certs/mycacert.pem .
+# certtool --generate-certificate \
+# --load-privkey kdc_slapd_key.pem \
+# --load-ca-certificate /etc/ssl/certs/mycacert.pem \
+# --load-ca-privkey /etc/ssl/private/mycakey.pem \
+# --template kdc.info \
+# --outfile kdc_slapd_cert.pem
 
 # -----------------------------Настройка LDAP-----------------------------------------------------------------------------
-cd ..
+# cd ..
 # Настройка системы журналированияЖ
 echo "dn: cn=config
 changetype: modify
@@ -111,7 +113,7 @@ replace: olcLogLevel
 olcLogLevel: stats" >> logging.ldif
 ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f logging.ldif
 
-nano /etc/ldap/schema/kerberos.schema   #добавляем код
+cp /tmp/kerberos.schema /etc/ldap/schema/   #добавляем код
 # Загрузите новую схему:
 ldap-schema-manager -i kerberos.schema
 #ldapsearch -QLLLY EXTERNAL -H ldapi:/// -b cn=schema,cn=config dn | grep -i kerberos
@@ -173,22 +175,14 @@ olcAccess: {3}to dn.subtree="cn=krbContainer,dc=docker,dc=net"
 EOF
 #slapcat -b cn=config
 
-# -------------------------------Возможно надо на KDC (не на LDAP) - надо попробовать:---------------------------------------------------------------------------------
-# Далее используем утилиту kdb5_ldap_util для создания области:
-kdb5_ldap_util -D cn=admin,dc=docker,dc=net create -subtrees dc=docker,dc=net -r DOCKER.NET -s -H ldapi:/// 
-#Password for "cn=admin,dc=docker,dc=net": hadoop
-#Enter KDC database master key: hadoop
-#Enter DN of Kerberos container: cn=krbContainer,dc=docker,dc=net
+apt remove -y schema2ldif gnutls-bin ca-certificates ssl-cert
 
-# Создаем тайник для пароля, используемого для подключения к LDAP серверу. Этот пароль используется опциями ldap_kdc_dn и ldap_kadmin_dn в /etc/krb5.conf:
-kdb5_ldap_util -D cn=admin,dc=docker,dc=net stashsrvpw -f /etc/krb5kdc/service.keyfile uid=kdc-service,dc=docker,dc=net
-#Password for "cn=admin,dc=docker,dc=net": hadoop
-#Password for "uid=kdc-service,dc=docker,dc=net": hadoop
-kdb5_ldap_util -D cn=admin,dc=docker,dc=net stashsrvpw -f /etc/krb5kdc/service.keyfile uid=kadmin-service,dc=docker,dc=net
-#Password for "cn=admin,dc=docker,dc=net": hadoop
-#Password for "uid=kdc-service,dc=docker,dc=net": hadoop
+# На клиенте достаточно только корневого сертификата для проверки сертификата LDAP-сервера.
+mkdir /kdc-ssl
+cp /etc/ssl/certs/mycacert.pem /kdc-ssl
+cp -r /kdc-ssl /etc/krb5kdc/keyfiles/
 
-apt remove schema2ldif krb5-kdc-ldap nano ldap-utils gnutls-bin ca-certificates ssl-cert -y
-# На клиенте, вроде бы, достаточно только корневого сертификата для проверки сертификата LDAP-сервера - надо проверять. 
-# Зачем тогда копируем еще и ключ (закрытый ключ) и сертификат (открытый ключ) - не понятно.
-# Для соединения с LDAP-сервером, вроде бы, их не требуется. Но они выпущены только для KDC-сервера (имя компьютера прописано в файле описания)
+# Для генерации подписанных сертификатов выкладываем также закрытый ключ нашего центра сертификации
+mkdir /private
+cp /etc/ssl/private/mycakey.pem /private
+cp -r /private /etc/krb5kdc/keyfiles/

@@ -19,3 +19,11 @@ wait $!
 # tar zxf ranger-2.4.0-admin.tar.gz
 # ln -s ranger-2.4.0-admin ranger-admin
 # cd ranger-admin
+
+# if [ `ls /usr/local/hadoop_distr | wc -l` -eq 0 ]; then
+#     cd /usr/local/hadoop_distr
+#     wget https://dlcdn.apache.org/hadoop/common/stable/hadoop-3.4.0-aarch64.tar.gz
+# fi
+
+# file="/usr/local/hadoop_distr/"$(ls /usr/local/hadoop_distr -tr)
+# tar xzf ${file} -C /usr/local/hadoop

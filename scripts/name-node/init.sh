@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# ждем kdc, который загружается после ldap
 kinit -k -t /etc/security/keytab/my.keytab hdfs@DOCKER.NET 
 while [ $? -ne 0 ]
 do

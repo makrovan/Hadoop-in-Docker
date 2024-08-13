@@ -1,0 +1,46 @@
+#!/bin/expect -f
+set timeout -1
+spawn /opt/setup.sh
+
+# apt-get update && apt install krb5-kdc-ldap krb5-admin-server ca-certificates -y
+expect "Default Kerberos version 5 realm: "
+send -- "DOCKER.NET\r"
+expect "Kerberos servers for your realm: "
+send -- "kdc-server.docker.net\r"
+expect "Administrative server for your Kerberos realm: "
+send -- "kdc-server.docker.net\r"
+expect "\[More\] "
+send -- "\r"
+
+# kdb5_ldap_util -D cn=admin,dc=docker,dc=net create -subtrees dc=docker,dc=net -r DOCKER.NET -s -H ldapi:/// 
+expect "Password for \"cn=admin,dc=docker,dc=net\": "
+send -- "hadoop\r"
+expect "Enter KDC database master key: "
+send -- "hadoop\r"
+expect "Re-enter KDC database master key to verify: "
+send -- "hadoop\r"
+expect "Enter DN of Kerberos container: "
+send -- "cn=krbContainer,dc=docker,dc=net\r"
+
+# kdb5_ldap_util -D cn=admin,dc=docker,dc=net stashsrvpw -f /etc/krb5kdc/service.keyfile uid=kdc-service,dc=docker,dc=net
+expect "Password for \"cn=admin,dc=docker,dc=net\": "
+send -- "hadoop\r"
+expect "Password for \"uid=kdc-service,dc=docker,dc=net\": "
+send -- "hadoop\r"
+expect "Re-enter password for \"uid=kdc-service,dc=docker,dc=net\": "
+send -- "hadoop\r"
+
+# kdb5_ldap_util -D cn=admin,dc=docker,dc=net stashsrvpw -f /etc/krb5kdc/service.keyfile uid=kadmin-service,dc=docker,dc=net
+expect "Password for \"cn=admin,dc=docker,dc=net\": "
+send -- "hadoop\r"
+expect "Password for \"uid=kadmin-service,dc=docker,dc=net\": "
+send -- "hadoop\r"
+expect "Re-enter password for \"uid=kadmin-service,dc=docker,dc=net\": "
+send -- "hadoop\r"
+
+# krb5_newrealm
+# expect "Enter KDC database master key: "
+# send -- "kdc-server.docker.net\r"
+# expect "Re-enter KDC database master key to verify: "
+# send -- "kdc-server.docker.net\r"
+expect eof
