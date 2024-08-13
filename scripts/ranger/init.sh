@@ -2,7 +2,7 @@
 
 # https://cwiki.apache.org/confluence/display/RANGER/Ranger+Installation+Guide#RangerInstallationGuide-Install/ConfigureRangerAdmin
 cd /usr/local
-tar zxf ranger-2.4.0-admin.tar.gz
+tar zxf /ranger/target/ranger-2.4.0-admin.tar.gz -C /usr/local
 ln -s ranger-2.4.0-admin ranger-admin
 cd ranger-admin
 
@@ -26,7 +26,7 @@ cp mycacert.pem /usr/local/share/ca-certificates/mycacert.crt
 update-ca-certificates
 
 cd /usr/local
-tar zxf ranger-2.4.0-usersync.tar.gz
+tar zxf /ranger/target/ranger-2.4.0-usersync.tar.gz -C /usr/local
 ln -s ranger-2.4.0-usersync ranger-usersync
 cd ranger-usersync
 
@@ -39,9 +39,9 @@ cd /usr/bin
 ln -sf /usr/local/ranger-usersync/start.sh ranger-usersync-start
 ranger-usersync-start
 
-# pid="$(pidof java)"
-# while [ -e /proc/$pid ]; do sleep 5; done
-while true; do sleep 5; done
+pid="$(pidof -s java)"
+while [ -e /proc/$pid ]; do sleep 5; done
+# while true; do sleep 5; done
 
 # Ranger Admin authentication can be configured to use LDAP or Linux system. Consider configuring one of them in production environment. TBD: Provide link to configure LDAP or Linux for authentication
 # Review database capacity for Audit database. It can grow dramatically in HBase or high volume environment. TBD: Provide link DB capacity planning

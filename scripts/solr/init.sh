@@ -1,9 +1,8 @@
 #!/bin/bash
 
-cd /usr/local
-tar xvf solr_for_audit_setup.tgz
 cd /usr/local/solr_for_audit_setup
 cp -f /tmp/install.properties .
+chmod 777 setup.sh
 
 # https://cwiki.apache.org/confluence/display/RANGER/Install+and+Configure+Solr+for+Ranger+Audits+-+Apache+Ranger+0.5
 # cd /usr/local

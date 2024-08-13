@@ -31,7 +31,7 @@ where the KMS will be running (e.g. hadoop-master). -->
 <configuration>
 <property>
   <name>ssl.server.truststore.location</name>
-  <value>/home/hdfs/.keystore</value>
+  <value>/usr/local/hadoop/my_ca/.keystore</value>
   <description>Truststore to be used by NN and DN. Must be specified.
   </description>
 </property>
@@ -60,7 +60,7 @@ where the KMS will be running (e.g. hadoop-master). -->
 
 <property>
   <name>ssl.server.keystore.location</name>
-  <value>/home/hdfs/.keystore</value>
+  <value>/usr/local/hadoop/my_ca/.keystore</value>
   <description>Keystore to be used by NN and DN. Must be specified.
   </description>
 </property>

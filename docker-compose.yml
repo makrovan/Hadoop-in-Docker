@@ -1,4 +1,44 @@
 services:
+  ldap-server:
+    build:
+      target: hadoop-ldap-server
+    volumes:
+      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
+    container_name: ldap-server
+    hostname: ldap-server.docker.net
+    networks:
+      docker.net:
+        ipv4_address: 192.168.9.31
+    restart: always
+    extra_hosts: &hosts
+      ldap-server.docker.net: 192.168.9.31
+      kdc-server.docker.net: 192.168.9.2
+      hadoop-master.docker.net: 192.168.9.10
+      hadoop-worker1.docker.net: 192.168.9.11
+      hadoop-worker2.docker.net: 192.168.9.12
+      hadoop-rmanager.docker.net: 192.168.9.13
+      hadoop-history.docker.net: 192.168.9.15
+      hadoop-solr.docker.net: 192.168.9.16
+      hadoop-postgres.docker.net: 192.168.9.17
+      hadoop-ranger.docker.net: 192.168.9.18
+      hadoop-client.docker.net: 192.168.9.100
+    
+  kdc-server:
+    build:
+      target: hadoop-kdc-server
+    volumes:
+      - ./Data/KDC/keytabs:/root/keytabs
+      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
+    container_name: kdc-server
+    hostname: kdc-server.docker.net
+    networks:
+      docker.net:
+        ipv4_address: 192.168.9.2
+    restart: always
+    extra_hosts: *hosts
+    depends_on:
+      - ldap-server
+
   hadoop-master:
     build: 
       target: hadoop-master
@@ -6,22 +46,12 @@ services:
     volumes:
       - ./Data/NameNode:/usr/local/hadoop/data/nameNode
       - ./Data/KDC/keytabs:/etc/security/keytab/
+      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
     hostname: hadoop-master.docker.net
     networks:
       docker.net:
-        ipv4_address: 192.168.4.10
-    extra_hosts: &hosts
-      hadoop-master.docker.net: 192.168.4.10
-      hadoop-worker1.docker.net: 192.168.4.11
-      hadoop-worker2.docker.net: 192.168.4.12
-      hadoop-rmanager.docker.net: 192.168.4.13
-      hadoop-history.docker.net: 192.168.4.15
-      hadoop-solr.docker.net: 192.168.4.16
-      hadoop-postgres.docker.net: 192.168.4.17
-      hadoop-ranger.docker.net: 192.168.4.18
-      ldap-server.docker.net: 192.168.4.19
-      kdc-server.docker.net: 192.168.4.20
-      hadoop-client.docker.net: 192.168.4.100
+        ipv4_address: 192.168.9.10
+    extra_hosts: *hosts
     restart: always
     depends_on:
       - kdc-server
@@ -35,10 +65,11 @@ services:
     volumes:
       - ./Data/Worker1:/usr/local/hadoop/data/dataNode
       - ./Data/KDC/keytabs:/etc/security/keytab/
+      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
     hostname: hadoop-worker1.docker.net
     networks:
       docker.net:
-        ipv4_address: 192.168.4.11
+        ipv4_address: 192.168.9.11
     extra_hosts: *hosts
     depends_on:
       - kdc-server
@@ -50,10 +81,11 @@ services:
     volumes:
       - ./Data/Worker2:/usr/local/hadoop/data/dataNode
       - ./Data/KDC/keytabs:/etc/security/keytab/
+      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
     hostname: hadoop-worker2.docker.net
     networks:
       docker.net:
-        ipv4_address: 192.168.4.12
+        ipv4_address: 192.168.9.12
     extra_hosts: *hosts
     depends_on:
       - kdc-server
@@ -64,10 +96,11 @@ services:
     container_name: hadoop-rmanager
     volumes:
       - ./Data/KDC/keytabs:/etc/security/keytab/
+      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
     hostname: hadoop-rmanager.docker.net
     networks:
       docker.net:
-        ipv4_address: 192.168.4.13
+        ipv4_address: 192.168.9.13
     extra_hosts: *hosts
     restart: always
     depends_on:
@@ -80,44 +113,16 @@ services:
     container_name: hadoop-history
     volumes:
       - ./Data/KDC/keytabs:/etc/security/keytab/
+      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
     hostname: hadoop-history.docker.net
     networks:
       docker.net:
-        ipv4_address: 192.168.4.15
+        ipv4_address: 192.168.9.15
     extra_hosts: *hosts
     restart: always
     depends_on:
       - hadoop-rmanager
   
-  kdc-server:
-    build:
-      target: hadoop-kdc-server
-    volumes:
-      - ./Data/KDC/keytabs:/root/keytabs
-      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
-    container_name: kdc-server
-    hostname: kdc-server.docker.net
-    networks:
-      docker.net:
-        ipv4_address: 192.168.4.20
-    restart: always
-    extra_hosts: *hosts
-    depends_on:
-      - ldap-server
-
-  ldap-server:
-    build:
-      target: hadoop-ldap-server
-    volumes:
-      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
-    container_name: ldap-server
-    hostname: ldap-server.docker.net
-    networks:
-      docker.net:
-        ipv4_address: 192.168.4.19
-    restart: always
-    extra_hosts: *hosts
-    
   hadoop-client:
     build:
       target: hadoop-client
@@ -129,13 +134,23 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:ro
       - ./Data/KDC/keytabs:/etc/security/keytab/
+      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
     networks:
       docker.net:
-        ipv4_address: 192.168.4.100
+        ipv4_address: 192.168.9.100
     extra_hosts: *hosts
     depends_on:
       - hadoop-master
     
+  ranger-distrib:
+    build:
+      target: ranger-distrib
+    container_name: ranger-distrib
+    hostname: ranger-distrib.docker.net
+    volumes:
+      - ./Data/Ranger_distrib/ranger:/ranger
+      - ./Data/Ranger_distrib/.m2:/.m2
+      
   hadoop-postgres:
     image: postgres
     container_name: hadoop-postgres
@@ -147,12 +162,12 @@ services:
       - POSTGRES_HOST_AUTH_METHOD="trust"
     volumes:
       - ./Data/Postgres/Data:/var/lib/postgresql/data/
-      - ./init-scripts/postgres-init-ranger-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./scripts/postgres/init-ranger-db.sql:/docker-entrypoint-initdb.d/init-db.sql
       # - ./Config/Postgres/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
       # - ./Config/Postgres/pg_hba.conf:/tmp/pg_hba.conf
     networks:
       docker.net:
-        ipv4_address: 192.168.4.17
+        ipv4_address: 192.168.9.17
     # ports:
     #   - "5432:5432"
     extra_hosts: *hosts
@@ -162,16 +177,15 @@ services:
       target: hadoop-solr
     container_name: hadoop-solr
     hostname: hadoop-solr.docker.net
-    # volumes:
-    #   - ./Data/Solr/Data:/var/solr
+    volumes:
+      - ./Data/Ranger_distrib/ranger/security-admin/contrib/solr_for_audit_setup:/usr/local/solr_for_audit_setup
     networks:
       docker.net:
-        ipv4_address: 192.168.4.16
-    # ports:
-    #   - "6083:6083"
-    # command: 
-    #   - solr-precreate
+        ipv4_address: 192.168.9.16
     extra_hosts: *hosts
+    depends_on:
+      ranger-distrib:
+        condition: service_completed_successfully
 
   hadoop-ranger:
     build: 
@@ -181,15 +195,21 @@ services:
     volumes:
       - ./Data/KDC/keytabs:/etc/security/keytab/
       - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
-      - ./Config/Hadoop:/etc/hadoop/conf
+      - ./Config/Hadoop/conf:/etc/hadoop/conf
+      - ./Data/Ranger_distrib/ranger/target:/ranger/target
     networks:
       docker.net:
-        ipv4_address: 192.168.4.18
+        ipv4_address: 192.168.9.18
     extra_hosts: *hosts
     depends_on:
-      - hadoop-postgres
-      - kdc-server
-      - hadoop-solr
+      kdc-server:
+        condition: service_started
+      ranger-distrib:
+        condition: service_completed_successfully
+      hadoop-postgres:
+        condition: service_started
+      hadoop-solr:
+        condition: service_started
   
 networks:
     docker.net:
@@ -199,12 +219,11 @@ networks:
       ipam:
         driver: default
         config:
-          - subnet: 192.168.4.0/24
+          - subnet: 192.168.9.0/24
 
 # xhost + ${localhost}
 
 # TODO:
-# проверить wait -n на worker-ах
 # исправить ссылки в Readme.md
 # Перейти на Docker swarm
 # ApacheRanger и ApacheKnox - попробовать настроить
@@ -212,4 +231,11 @@ networks:
 
 # Настроить pg_hba.conf на соединение JDBC по шифрованному каналу
 # SOLRCloud через Zookeeper
-# исправить скрипт запуска песочницы для сборки ranger-a
+
+# с сервера рейнджера (где установлен СА):
+# добавить пользователя в ЛДАП, добавить ему авторизацию керберос
+# настроить авторизацию админки рейнджера и синхронизацию юзерсинка
+# перевыпустить ключи для ссл хадупа на сертификате СА - проверить, что браузер открывает их сразу
+# настройка рейнджер-хдфс
+# настройка рейнджер-ямл
+# кнокс

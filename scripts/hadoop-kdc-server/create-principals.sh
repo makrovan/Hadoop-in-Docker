@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd /root/keytabs
-rm *.keytab
+# rm *.keytab
 
 #services principals
 kadmin.local -q 'addprinc -randkey nn/hadoop-master.docker.net@DOCKER.NET'
