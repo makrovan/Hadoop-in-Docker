@@ -1,41 +1,52 @@
 #!/bin/bash
+set -x
 
 # https://ubuntu.com/server/docs/ldap-and-transport-layer-security-tls
 # https://ubuntu.com/server/docs/how-to-set-up-kerberos-with-openldap-backend
 
-# kdc-server будет ждать, пока в этой папке не появится корневой сертификат
-rm -rf /etc/krb5kdc/keyfiles/*
+# kdc-server будет ждать данный файл:
+rm -f /etc/sync/ldap_started
 
-# docker run -it --hostname ldap-server.docker.net ubuntu /bin/bash
-apt update && apt install -y slapd gnutls-bin ssl-cert ca-certificates rsyslog schema2ldif 
+apt update && apt install -y slapd 
 #Administrator password: hadoop
 
-#Default Kerberos version 5 realm: DOCKER.NET
-#Kerberos servers for your realm: kdc-server.docker.net
-#Administrative server for your Kerberos realm: kdc-server.docker.net
-
 # -------------------------Центр сертификации---------------------------------------------------------------------------------
-# Здесь мы организуем свой собственный Центр сертификатов (Certificate Authority - CA) и затем создадим и подпишем сертификат нашего LDAP сервера от имени этого CA.
+# Здесь мы организуем свой собственный Центр сертификатов (Certificate Authority - CA)
+# на котором затем создадим и подпишем сертификат нашего LDAP сервера (от имени этого CA).
+# Также на этом сертификате подписываем все https/ssl/tls - ключи
+# Postgres считывает его только первый раз при инициализации БД => 
+# если сертификат меняется, то БД надо перенастроить
+if [ ! -f /etc/CA/mycacert.pem ] || [ ! -f /etc/CA/mycakey.pem ]
+then
+  # Создаем секретный ключ CA:
+  certtool --generate-privkey --bits 4096 --outfile /etc/ssl/private/mycakey.pem
+  # openssl genrsa -aes256 -out private/rootca.key 4096
 
-# Создаем секретный ключ Центра сертификатов:
-certtool --generate-privkey --bits 4096 --outfile /etc/ssl/private/mycakey.pem
-# openssl genrsa -aes256 -out private/rootca.key 4096
+  # Создаем временный файл /etc/ssl/ca.info для определения CA:
+  echo "cn = Docker Net
+  ca
+  cert_signing_key
+  expiration_days = 3650" >> /etc/ssl/ca.info
 
-# Создаем временный файл /etc/ssl/ca.info для определения CA:
-echo "cn = Docker Net
-ca
-cert_signing_key
-expiration_days = 3650" >> /etc/ssl/ca.info
+  # Создаем самоподписанный сертификат центра:
+  certtool --generate-self-signed --load-privkey /etc/ssl/private/mycakey.pem --template /etc/ssl/ca.info --outfile /usr/local/share/ca-certificates/mycacert.crt
+  # Сейчас мы можем выпустить корневой сертификат удостоверяющего центра, подписав его закрытым ключом rootca.key:
+  # openssl req -sha256 -new -x509 -days 3650 -extensions v3_ca \
+  #  -key private/rootca.key -out certs/rootca.crt \
+  #  -subj /C=RU/ST=Moscow/L=Moscow/O=ExampleInc/OU=ITdept/CN=ca-server/emailAddress=support@example.com
 
-# Создаем самоподписанный сертификат центра:
-certtool --generate-self-signed --load-privkey /etc/ssl/private/mycakey.pem --template /etc/ssl/ca.info --outfile /usr/local/share/ca-certificates/mycacert.crt
-# Сейчас мы можем выпустить корневой сертификат удостоверяющего центра, подписав его закрытым ключом rootca.key:
-# openssl req -sha256 -new -x509 -days 3650 -extensions v3_ca \
-#  -key private/rootca.key -out certs/rootca.crt \
-#  -subj /C=RU/ST=Moscow/L=Moscow/O=ExampleInc/OU=ITdept/CN=ca-server/emailAddress=support@example.com
-
-update-ca-certificates
-
+  update-ca-certificates
+  # На клиенте достаточно только корневого сертификата для проверки сертификата LDAP-сервера.
+  cp /etc/ssl/certs/mycacert.pem /etc/CA
+  # Но для генерации подписанных сертификатов выкладываем также закрытый ключ нашего центра сертификации
+  cp /etc/ssl/private/mycakey.pem /etc/CA
+  chmod 644 /etc/CA/mycakey.pem
+else
+  mkdir -p /etc/ssl/private/
+  cp /etc/CA/mycacert.pem /usr/local/share/ca-certificates/mycacert.crt
+  cp /etc/CA/mycakey.pem /etc/ssl/private/
+  update-ca-certificates
+fi
 
 # --------------------------LDAP-сервер-сертификат (ключи)--------------------------------------------------------------------------------
 # Создаем секретный ключ для сервера (provider):
@@ -82,35 +93,13 @@ slapd -h "ldap:// ldapi://"
 # Загрузим конфигурацию TLS в наш каталог:
 ldapmodify -Y EXTERNAL -H ldapi:/// -f certinfo.ldif
 
-# ---------------------------Kerberos-клиент-сертификат (ключи)-------------------------------------------------------------------------------
-# cd kdc-ssl
-
-# Создаем секретный ключ потребителя (consumer):
-# certtool --generate-privkey --bits 2048 --outfile kdc_slapd_key.pem
-
-# Создаем информационный файл ldap02.info для сервера Потребителя
-# echo "organization = Docker Net
-# cn = kdc.docker.net
-# tls_www_server
-# encryption_key
-# signing_key
-# expiration_days = 365" >> kdc.info
-
-# Создаем сертификат Потребителя:
-# certtool --generate-certificate \
-# --load-privkey kdc_slapd_key.pem \
-# --load-ca-certificate /etc/ssl/certs/mycacert.pem \
-# --load-ca-privkey /etc/ssl/private/mycakey.pem \
-# --template kdc.info \
-# --outfile kdc_slapd_cert.pem
-
 # -----------------------------Настройка LDAP-----------------------------------------------------------------------------
-# cd ..
 # Настройка системы журналированияЖ
+# https://www.openldap.org/doc/admin26/slapdconf2.html
 echo "dn: cn=config
 changetype: modify
 replace: olcLogLevel
-olcLogLevel: stats" >> logging.ldif
+olcLogLevel: trace" >> logging.ldif
 ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f logging.ldif
 
 cp /tmp/kerberos.schema /etc/ldap/schema/   #добавляем код
@@ -160,7 +149,7 @@ ldappasswd -x -D cn=admin,dc=docker,dc=net -W -S uid=kadmin-service,dc=docker,dc
 ldapmodify -Q -Y EXTERNAL -H ldapi:/// <<EOF
 dn: olcDatabase={1}mdb,cn=config
 add: olcAccess
-olcAccess: {2}to attrs=krbPrincipalKey
+olcAccess: {2}to attrs=krbLoginFailedCount,krbprincipalname,krbprincipalkey,krbLastPwdChange,krbExtraData,objectclass
   by anonymous auth
   by dn.exact="uid=kdc-service,dc=docker,dc=net" read
   by dn.exact="uid=kadmin-service,dc=docker,dc=net" write
@@ -175,14 +164,5 @@ olcAccess: {3}to dn.subtree="cn=krbContainer,dc=docker,dc=net"
 EOF
 #slapcat -b cn=config
 
-apt remove -y schema2ldif gnutls-bin ca-certificates ssl-cert
-
-# На клиенте достаточно только корневого сертификата для проверки сертификата LDAP-сервера.
-mkdir /kdc-ssl
-cp /etc/ssl/certs/mycacert.pem /kdc-ssl
-cp -r /kdc-ssl /etc/krb5kdc/keyfiles/
-
-# Для генерации подписанных сертификатов выкладываем также закрытый ключ нашего центра сертификации
-mkdir /private
-cp /etc/ssl/private/mycakey.pem /private
-cp -r /private /etc/krb5kdc/keyfiles/
+# pgrep -f 'slapd -h ldap:// ldapi://'
+pkill -f 'slapd -h ldap:// ldapi://'

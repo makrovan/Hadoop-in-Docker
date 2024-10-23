@@ -1,0 +1,12 @@
+{
+    "authentication": {
+        "class": "org.apache.solr.security.KerberosPlugin"
+    },
+    "authorization": {
+        "class": "solr.RuleBasedAuthorizationPlugin",
+        "user-role": {"rangeradmin/hadoop-ranger.docker.net@DOCKER.NET": "admin"},
+        "permissions": [
+            {"name": "all", "role": "admin"}
+        ]        
+    }
+}

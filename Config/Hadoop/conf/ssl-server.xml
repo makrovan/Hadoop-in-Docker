@@ -22,7 +22,7 @@
 <!-- You need to create an SSL certificate. 
 $ keytool -genkey -alias jetty -keyalg RSA
 You will be asked a series of questions in an interactive prompt. It will create the keystore file, 
-which will be named .keystore and located in the user’s home directory.
+which will be named keystore.jks and located in the user’s home directory.
 The password you enter for “keystore password” must match the value of the property 
 ssl.server.keystore.password set in the ssl-server.xml in the configuration directory.
 The answer to “What is your first and last name?” (i.e. “CN”) must be the hostname of the machine 
@@ -31,7 +31,7 @@ where the KMS will be running (e.g. hadoop-master). -->
 <configuration>
 <property>
   <name>ssl.server.truststore.location</name>
-  <value>/usr/local/hadoop/my_ca/.keystore</value>
+  <value>/tmp/ssl/keystore.jks</value>
   <description>Truststore to be used by NN and DN. Must be specified.
   </description>
 </property>
@@ -60,7 +60,7 @@ where the KMS will be running (e.g. hadoop-master). -->
 
 <property>
   <name>ssl.server.keystore.location</name>
-  <value>/usr/local/hadoop/my_ca/.keystore</value>
+  <value>/tmp/ssl/keystore.jks</value>
   <description>Keystore to be used by NN and DN. Must be specified.
   </description>
 </property>
