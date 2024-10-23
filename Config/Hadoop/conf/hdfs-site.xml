@@ -43,7 +43,7 @@
 	</property>
 	<property>
 		<name>dfs.namenode.keytab.file</name>
-		<value>/etc/security/keytab/nn.service.keytab</value>
+		<value>/etc/security/keytabs/nn.service.keytab</value>
 	</property>
 	<property>
 		<name>dfs.namenode.kerberos.internal.spnego.principal</name>
@@ -55,7 +55,7 @@
     </property> 
 	<property>
 		<name>dfs.web.authentication.kerberos.keytab</name>
-		<value>/etc/security/keytab/HTTP.service.keytab</value>
+		<value>/etc/security/keytabs/HTTP.service.keytab</value>
 	</property>
 	<property>
 		<name>dfs.http.policy</name>
@@ -83,7 +83,7 @@
 	</property>
 	<property>
 		<name>dfs.datanode.keytab.file</name>
-		<value>/etc/security/keytab/dn.service.keytab</value>
+		<value>/etc/security/keytabs/dn.service.keytab</value>
 	</property>
 	<property>
         <name>dfs.encrypt.data.transfer</name>

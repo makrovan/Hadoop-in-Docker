@@ -1,28 +1,34 @@
 #!/bin/bash
+set -x
 
-# ждем пока стартанет ldap-сервер и выложит в общий доступ корневой сертификат
-apt install -y ca-certificates
-while [ `ls /etc/krb5kdc/keyfiles/kdc-ssl | wc -l` -eq 0 ]
+# ждем корневой сертификат
+while [ ! -f /etc/CA/mycacert.pem ]
 do
     sleep 5
-    echo "waiting /etc/krb5kdc/keyfiles/kdc-ssl..."
+    echo "waiting /etc/CA/mycacert.pem..."
 done
 
-cp /etc/krb5kdc/keyfiles/kdc-ssl/mycacert.pem /usr/local/share/ca-certificates/mycacert.crt
-update-ca-certificates
+# если root, то добавляем корневой сертификат в список доверенных (нужен для ldaps)
+if [ $(id -u) = 0 ]; then
+    cp /etc/CA/mycacert.pem /usr/local/share/ca-certificates/mycacert.crt
+    update-ca-certificates
+fi
 
-mkdir /usr/local/hadoop/my_ca
-cd /usr/local/hadoop/my_ca
-
+# создаем ключи для https/ssl - соединений
 # https://kuzevanov.ru/linux/commands-java-keytool.html
-
+mkdir -p /tmp/ssl
+cd /tmp/ssl
 # Создайте хранилище ключей Java и пару ключей
-keytool -genkey -alias $(hostname) -keyalg RSA -keysize 2048 -keystore .keystore -dname "CN=$(hostname)" -keypass hadoop -storepass hadoop
+keytool -genkey -alias $(hostname) -keyalg RSA -keysize 2048 -keystore keystore.jks -dname "CN=$(hostname)" -keypass hadoop -storepass hadoop
 # Создайте запрос на подпись сертификата (CSR) для существующего хранилища ключей Java
-keytool -certreq -alias $(hostname) -keystore .keystore -file hadoop.csr -storepass hadoop
+keytool -certreq -alias $(hostname) -keystore keystore.jks -file keystore.csr -storepass hadoop
 
-cp /etc/krb5kdc/keyfiles/private/mycakey.pem .
-cp /usr/local/share/ca-certificates/mycacert.crt .
+# Корневой сертификат в формат JKS:
+if [ ! -f /etc/CA/mycacert.jks ]; then
+    keytool -import -alias $(hostname) -file /etc/CA/mycacert.pem -keypass hadoop -keystore /etc/CA/mycacert.jks -storepass hadoop -noprompt
+    # keytool -v -list -storetype jks -keystore root.jks -storepass ranger
+fi
+# cp /etc/CA/mycacert.jks .
 
 # https://www.golinuxcloud.com/add-x509-extensions-to-certificate-openssl/
 # Scenario-2: Add X.509 extensions to Certificate Signing Request (CSR)
@@ -61,9 +67,8 @@ basicConstraints        = CA:FALSE
 extendedKeyUsage        = serverAuth, clientAuth, codeSigning, emailProtection
 keyUsage                = nonRepudiation, digitalSignature, keyEncipherment" >> openssl.cnf
 # Generate server certificate using CSR and rootca certificate:
-openssl x509 -req -days 365 -in hadoop.csr -CA mycacert.crt -CAkey mycakey.pem -CAcreateserial -out hadoop.crt
+openssl x509 -req -days 365 -in keystore.csr -CA /etc/CA/mycacert.pem -CAkey /etc/CA/mycakey.pem -CAcreateserial -out keystore.crt
 # Импорт подписанного первичного сертификата в существующее хранилище ключей Java
-keytool -import -trustcacerts -alias $(hostname) -file hadoop.crt -keystore .keystore -storepass hadoop
-
-chown hdfs:hadoop .keystore
-chmod 640 .keystore
+keytool -import -trustcacerts -alias $(hostname) -file keystore.crt -keystore keystore.jks -storepass hadoop
+rm keystore.csr
+rm keystore.crt

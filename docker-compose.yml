@@ -1,15 +1,15 @@
 services:
   ldap-server:
     build:
-      target: hadoop-ldap-server
+      target: ldap-server
     volumes:
-      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
     container_name: ldap-server
     hostname: ldap-server.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.9.31
-    restart: always
     extra_hosts: &hosts
       ldap-server.docker.net: 192.168.9.31
       kdc-server.docker.net: 192.168.9.2
@@ -21,20 +21,21 @@ services:
       hadoop-solr.docker.net: 192.168.9.16
       hadoop-postgres.docker.net: 192.168.9.17
       hadoop-ranger.docker.net: 192.168.9.18
+      hadoop-knox.docker.net: 192.168.9.19
       hadoop-client.docker.net: 192.168.9.100
     
   kdc-server:
     build:
-      target: hadoop-kdc-server
+      target: kdc-server
     volumes:
-      - ./Data/KDC/keytabs:/root/keytabs
-      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
+      - ./Data/Sync:/etc/sync
+      - ./Data/CA:/etc/CA
+      - ./Data/KDC:/etc/security/
     container_name: kdc-server
     hostname: kdc-server.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.9.2
-    restart: always
     extra_hosts: *hosts
     depends_on:
       - ldap-server
@@ -44,15 +45,15 @@ services:
       target: hadoop-master
     container_name: hadoop-master
     volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
       - ./Data/NameNode:/usr/local/hadoop/data/nameNode
-      - ./Data/KDC/keytabs:/etc/security/keytab/
-      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
     hostname: hadoop-master.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.9.10
     extra_hosts: *hosts
-    restart: always
     depends_on:
       - kdc-server
       - hadoop-worker1
@@ -63,9 +64,10 @@ services:
       target: hadoop-worker
     container_name: hadoop-worker1
     volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
       - ./Data/Worker1:/usr/local/hadoop/data/dataNode
-      - ./Data/KDC/keytabs:/etc/security/keytab/
-      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
     hostname: hadoop-worker1.docker.net
     networks:
       docker.net:
@@ -79,9 +81,10 @@ services:
       target: hadoop-worker
     container_name: hadoop-worker2
     volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
       - ./Data/Worker2:/usr/local/hadoop/data/dataNode
-      - ./Data/KDC/keytabs:/etc/security/keytab/
-      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
     hostname: hadoop-worker2.docker.net
     networks:
       docker.net:
@@ -95,14 +98,15 @@ services:
       target: hadoop-rmanager
     container_name: hadoop-rmanager
     volumes:
-      - ./Data/KDC/keytabs:/etc/security/keytab/
-      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
+      # - ./Data/Ranger_distrib/ranger/target:/ranger/target
     hostname: hadoop-rmanager.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.9.13
     extra_hosts: *hosts
-    restart: always
     depends_on:
       - kdc-server
       - hadoop-master
@@ -112,14 +116,14 @@ services:
       target: hadoop-history
     container_name: hadoop-history
     volumes:
-      - ./Data/KDC/keytabs:/etc/security/keytab/
-      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
     hostname: hadoop-history.docker.net
     networks:
       docker.net:
         ipv4_address: 192.168.9.15
     extra_hosts: *hosts
-    restart: always
     depends_on:
       - hadoop-rmanager
   
@@ -128,19 +132,19 @@ services:
       target: hadoop-client
     container_name: hadoop-client
     hostname: hadoop-client.docker.net
-    # privileged: true
     environment:
       - DISPLAY=$DISPLAY
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:ro
-      - ./Data/KDC/keytabs:/etc/security/keytab/
-      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
     networks:
       docker.net:
         ipv4_address: 192.168.9.100
     extra_hosts: *hosts
     depends_on:
-      - hadoop-master
+      - kdc-server
     
   ranger-distrib:
     build:
@@ -155,37 +159,36 @@ services:
     image: postgres
     container_name: hadoop-postgres
     hostname: hadoop-postgres.docker.net
-    # user: postgres
+    user: postgres
     environment:
-      # - POSTGRES_DB = ranger
-      - POSTGRES_PASSWORD="postgres"
-      - POSTGRES_HOST_AUTH_METHOD="trust"
+      - POSTGRES_PASSWORD=postgres
     volumes:
-      - ./Data/Postgres/Data:/var/lib/postgresql/data/
+      - ./Data/CA:/etc/CA
+      - ./Data/Postgres:/var/lib/postgresql/data
+      # https://hub.docker.com/_/postgres Initialization scripts
       - ./scripts/postgres/init-ranger-db.sql:/docker-entrypoint-initdb.d/init-db.sql
-      # - ./Config/Postgres/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
-      # - ./Config/Postgres/pg_hba.conf:/tmp/pg_hba.conf
+      - ./scripts/postgres/log-setting.sh:/docker-entrypoint-initdb.d/log-setting.sh
+      - ./scripts/postgres/create-ssl-key.sh:/docker-entrypoint-initdb.d/init-ssl.sh
     networks:
       docker.net:
         ipv4_address: 192.168.9.17
-    # ports:
-    #   - "5432:5432"
     extra_hosts: *hosts
 
   hadoop-solr:
     build: 
-      target: hadoop-solr
+        target: hadoop-solr
     container_name: hadoop-solr
     hostname: hadoop-solr.docker.net
     volumes:
-      - ./Data/Ranger_distrib/ranger/security-admin/contrib/solr_for_audit_setup:/usr/local/solr_for_audit_setup
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
     networks:
       docker.net:
         ipv4_address: 192.168.9.16
     extra_hosts: *hosts
     depends_on:
-      ranger-distrib:
-        condition: service_completed_successfully
+      - kdc-server
 
   hadoop-ranger:
     build: 
@@ -193,24 +196,34 @@ services:
     container_name: hadoop-ranger
     hostname: hadoop-ranger.docker.net
     volumes:
-      - ./Data/KDC/keytabs:/etc/security/keytab/
-      - ./Data/LDAP/keyfiles:/etc/krb5kdc/keyfiles
-      - ./Config/Hadoop/conf:/etc/hadoop/conf
-      - ./Data/Ranger_distrib/ranger/target:/ranger/target
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
     networks:
       docker.net:
         ipv4_address: 192.168.9.18
     extra_hosts: *hosts
     depends_on:
-      kdc-server:
-        condition: service_started
-      ranger-distrib:
-        condition: service_completed_successfully
-      hadoop-postgres:
-        condition: service_started
-      hadoop-solr:
-        condition: service_started
-  
+      - kdc-server
+      - hadoop-postgres
+      - hadoop-solr
+
+  hadoop-knox:
+    build:
+      target: hadoop-knox
+    container_name: hadoop-knox
+    hostname: hadoop-knox.docker.net
+    volumes:
+      - ./Data/Sync:/etc/sync
+      - ./Data/CA:/etc/CA
+      - ./Data/KDC:/etc/security/
+    networks:
+      docker.net:
+        ipv4_address: 192.168.9.19
+    extra_hosts: *hosts
+    depends_on:
+      - kdc-server
+ 
 networks:
     docker.net:
       driver: bridge
@@ -226,16 +239,6 @@ networks:
 # TODO:
 # исправить ссылки в Readme.md
 # Перейти на Docker swarm
-# ApacheRanger и ApacheKnox - попробовать настроить
-# настроить керберизацию ApacheRanger
-
-# Настроить pg_hba.conf на соединение JDBC по шифрованному каналу
-# SOLRCloud через Zookeeper
-
-# с сервера рейнджера (где установлен СА):
-# добавить пользователя в ЛДАП, добавить ему авторизацию керберос
-# настроить авторизацию админки рейнджера и синхронизацию юзерсинка
-# перевыпустить ключи для ссл хадупа на сертификате СА - проверить, что браузер открывает их сразу
 # настройка рейнджер-хдфс
 # настройка рейнджер-ямл
 # кнокс

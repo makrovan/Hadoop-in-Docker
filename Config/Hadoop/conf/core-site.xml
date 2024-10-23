@@ -82,7 +82,7 @@
         </property>
         <property>
                 <name>hadoop.http.authentication.kerberos.keytab</name>
-                <value>/etc/security/keytab/HTTP.service.keytab</value>
+                <value>/etc/security/keytabs/HTTP.service.keytab</value>
         </property>
 <!-- CORS -->
 <!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/HttpAuthentication.html#CORS -->

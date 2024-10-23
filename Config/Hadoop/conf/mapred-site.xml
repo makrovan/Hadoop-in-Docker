@@ -43,7 +43,7 @@
 <!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SecureMode.html -->
 	<property>
 		<name>mapreduce.jobhistory.keytab</name>
-		<value>/etc/security/keytab/jhs.service.keytab</value>
+		<value>/etc/security/keytabs/jhs.service.keytab</value>
 	</property>
 	<property>
 		<name>mapreduce.jobhistory.principal</name>

@@ -1,17 +1,16 @@
 #!/bin/bash
+set -x
 
 #https://ubuntu.com/server/docs/how-to-set-up-kerberos-with-openldap-backend
 
-rm /root/keytabs/*.keytab
-
-apt-get update && apt install ca-certificates -y
-while [ `ls /etc/krb5kdc/keyfiles/kdc-ssl | wc -l` -eq 0 ]
+# waiting for ldap-server...
+while [ ! -f /etc/sync/ldap_started ]
 do
     sleep 5
-    echo "waiting /etc/krb5kdc/keyfiles/kdc-ssl..."
+    echo "waiting /etc/sync/ldap_started..."
 done
 
-cp /etc/krb5kdc/keyfiles/kdc-ssl/mycacert.pem /usr/local/share/ca-certificates/mycacert.crt
+cp /etc/CA/mycacert.pem /usr/local/share/ca-certificates/mycacert.crt
 update-ca-certificates
 
 apt install -y krb5-kdc-ldap krb5-admin-server
@@ -29,11 +28,14 @@ kdb5_ldap_util -D cn=admin,dc=docker,dc=net create -subtrees dc=docker,dc=net -r
 #Enter DN of Kerberos container: cn=krbContainer,dc=docker,dc=net
 
 # Создаем тайник для пароля, используемого для подключения к LDAP серверу. Этот пароль используется опциями ldap_kdc_dn и ldap_kadmin_dn в /etc/krb5.conf:
-kdb5_ldap_util -D cn=admin,dc=docker,dc=net stashsrvpw -f /etc/krb5kdc/keyfiles/service.keyfile uid=kdc-service,dc=docker,dc=net
+mkdir -p /etc/security/keyfiles
+rm -f /etc/security/keyfiles/service.keyfile
+kdb5_ldap_util -D cn=admin,dc=docker,dc=net stashsrvpw -f /etc/security/keyfiles/service.keyfile uid=kdc-service,dc=docker,dc=net
 #Password for "cn=admin,dc=docker,dc=net": hadoop
 #Password for "uid=kdc-service,dc=docker,dc=net": hadoop
-kdb5_ldap_util -D cn=admin,dc=docker,dc=net stashsrvpw -f /etc/krb5kdc/keyfiles/service.keyfile uid=kadmin-service,dc=docker,dc=net
+kdb5_ldap_util -D cn=admin,dc=docker,dc=net stashsrvpw -f /etc/security/keyfiles/service.keyfile uid=kadmin-service,dc=docker,dc=net
 #Password for "cn=admin,dc=docker,dc=net": hadoop
 #Password for "uid=kdc-service,dc=docker,dc=net": hadoop
 
+rm -f /etc/krb5.conf
 cp /tmp/krb5.conf /etc/krb5.conf

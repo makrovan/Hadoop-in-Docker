@@ -28,7 +28,7 @@
 	</property>
 	<property>
 		<name>yarn.resourcemanager.keytab</name>
-		<value>/etc/security/keytab/rm.service.keytab</value>
+		<value>/etc/security/keytabs/rm.service.keytab</value>
 	</property>
 	<property>
 		<name>yarn.resourcemanager.webapp.https.address</name>
@@ -40,7 +40,7 @@
 	</property>
 	<property>
 		<name>yarn.nodemanager.keytab</name>
-		<value>/etc/security/keytab/nm.service.keytab</value>
+		<value>/etc/security/keytabs/nm.service.keytab</value>
 	</property>
 	<property>
 		<name>yarn.nodemanager.webapp.https.address</name>
@@ -49,5 +49,9 @@
 	<property>
         <name>yarn.http.policy</name>
         <value>HTTPS_ONLY</value>
+    </property>
+	<property>
+        <name>yarn.webapp.api-service.enable</name>
+        <value>true</value>
     </property>
 </configuration>

@@ -1,6 +1,9 @@
 #!/bin/expect -f
 set timeout -1
-spawn /opt/setup.sh
+
+#cd [file dirname $argv0]
+set basedir [file dirname $argv0]
+spawn $basedir/setup.sh
 
 # apt update && apt install -y slapd gnutls-bin ssl-cert ca-certificates rsyslog schema2ldif 
 expect "Administrator password: "

@@ -1,7 +1,9 @@
 #!/bin/bash
+set -x
 
-cd /root/keytabs
-# rm *.keytab
+mkdir -p /etc/security/keytabs
+rm -f /etc/security/keytabs/*
+cd /etc/security/keytabs
 
 #services principals
 kadmin.local -q 'addprinc -randkey nn/hadoop-master.docker.net@DOCKER.NET'
@@ -33,11 +35,15 @@ kadmin.local -q 'addprinc -randkey yarn@DOCKER.NET'
 kadmin.local -q 'addprinc -randkey mapred@DOCKER.NET'
 kadmin.local -q 'ktadd -norandkey -k my.keytab hdfs@DOCKER.NET yarn@DOCKER.NET mapred@DOCKER.NET'
 
+
 #ranger principals
+# https://cwiki.apache.org/confluence/display/RANGER/Ranger+installation+in+Kerberized++Environment
 kadmin.local -q 'addprinc -randkey HTTP/hadoop-ranger.docker.net@DOCKER.NET'
 kadmin.local -q 'addprinc -randkey rangeradmin/hadoop-ranger.docker.net@DOCKER.NET'
 kadmin.local -q 'addprinc -randkey rangerlookup/hadoop-ranger.docker.net@DOCKER.NET'
-kadmin.local -q 'ktadd -norandkey -k ranger.keytab HTTP/hadoop-ranger.docker.net@DOCKER.NET rangeradmin/hadoop-ranger.docker.net@DOCKER.NET rangerlookup/hadoop-ranger.docker.net@DOCKER.NET'
+kadmin.local -q 'addprinc -randkey rangerusersync/hadoop-ranger.docker.net@DOCKER.NET'
+kadmin.local -q 'addprinc -randkey solr/hadoop-solr.docker.net@DOCKER.NET'
+kadmin.local -q 'addprinc -randkey HTTP/hadoop-solr.docker.net@DOCKER.NET'
+kadmin.local -q 'ktadd -norandkey -k ranger.keytab HTTP/hadoop-ranger.docker.net@DOCKER.NET rangeradmin/hadoop-ranger.docker.net@DOCKER.NET rangerlookup/hadoop-ranger.docker.net@DOCKER.NET rangerusersync/hadoop-ranger.docker.net@DOCKER.NET solr/hadoop-solr.docker.net@DOCKER.NET HTTP/hadoop-solr.docker.net@DOCKER.NET'
 
 chmod +r ./*
-# cp /etc/krb5kdc/my.keytab .

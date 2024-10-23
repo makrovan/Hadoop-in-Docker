@@ -1,6 +1,9 @@
 #Hadoop Cluster Setup
 #https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/ClusterSetup.html
 
+
+#SET THIS BY ENV IN DOCKER!!!
+
 export HADOOP_HOME="/usr/local/hadoop"
 export HADOOP_COMMON_HOME=$HADOOP_HOME
 export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
