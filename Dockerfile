@@ -25,6 +25,7 @@ RUN chown hdfs:hadoop -R /usr/local/hadoop/data/dataNode
 RUN chown hdfs:hadoop -R /usr/local/hadoop/logs
 RUN chown yarn:hadoop -R /tmp/hadoop-yarn/nm-local-dir
 RUN chown yarn:hadoop -R /usr/local/hadoop/logs/userlogs
+RUN useradd -g hadoop --disabled-password --gecos "" knox
 COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
 COPY ./Config/Hadoop/http-signature.secret /etc/http-signature.secret
 COPY ./Config/Hadoop/log4j.properties /usr/local/hadoop/etc/hadoop/log4j.properties
@@ -199,6 +200,7 @@ RUN apt install -y openjdk-8-jdk
 RUN apt install -y krb5-user
 RUN apt install -y ca-certificates
 RUN apt install -y unzip
+RUN apt install -y xmlstarlet
 RUN addgroup knox
 RUN adduser --ingroup knox --disabled-password --gecos "" knox
 ADD https://dlcdn.apache.org/knox/2.0.0/knox-2.0.0.zip /usr/local
@@ -206,16 +208,21 @@ RUN unzip /usr/local/knox-2.0.0.zip -d /usr/local
 RUN ln -s /usr/local/knox-2.0.0 /usr/local/knox
 RUN chown knox:knox -R /usr/local/knox/
 COPY ./Config/Kerberos/krb5.conf /etc/krb5.conf
+COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
 COPY --chmod=777 ./scripts/create-https-key.sh /opt/bin/https_key_init
 COPY --chmod=777 ./scripts/kdc-keytabs-waiting.sh /opt/bin/kdc_waiting
 COPY --chmod=777 ./scripts/utils/myrun_scripts.sh /opt/bin/myrun_scripts
 COPY --chmod=777 ./scripts/utils/mywait.sh /opt/bin/mywait
 COPY --chmod=777 ./scripts/knox/init.sh /opt/bin/setup
+COPY ./Config/Knox/myproxy.xml /tmp
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ENV PATH=$PATH:$JAVA_HOME/bin
+ENV HADOOP_HOME=/usr/local/hadoop
 ENV PATH="$PATH:/opt/bin/"
+ENV GATEWAY_HOME=/usr/local/knox
 ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && setup && \
-                                su -c './usr/local/knox/bin/gateway.sh start' knox && \
+                                # su -c '/usr/local/knox/bin/knoxcli.sh create-master --master hadoop' knox && \
+                                # su -c './usr/local/knox/bin/gateway.sh start' knox && \
                                 sleep infinity && \
                                 mywait" ]
 

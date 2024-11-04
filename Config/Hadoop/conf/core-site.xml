@@ -106,4 +106,13 @@
                 <name>hadoop.http.cross-origin.max-age</name>
                 <value>1800</value>
         </property>
+<!-- https://knox.apache.org/books/knox-2-1-0/user-guide.html#Configuration -->
+        <property>
+                <name>hadoop.proxyuser.knox.groups</name>
+                <value>users</value>
+        </property>
+        <property>
+                <name>hadoop.proxyuser.knox.hosts</name>
+                <value>hadoop-knox.docker.net</value>
+        </property>
 </configuration>

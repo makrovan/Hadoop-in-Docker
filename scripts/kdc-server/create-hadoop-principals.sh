@@ -46,4 +46,7 @@ kadmin.local -q 'addprinc -randkey solr/hadoop-solr.docker.net@DOCKER.NET'
 kadmin.local -q 'addprinc -randkey HTTP/hadoop-solr.docker.net@DOCKER.NET'
 kadmin.local -q 'ktadd -norandkey -k ranger.keytab HTTP/hadoop-ranger.docker.net@DOCKER.NET rangeradmin/hadoop-ranger.docker.net@DOCKER.NET rangerlookup/hadoop-ranger.docker.net@DOCKER.NET rangerusersync/hadoop-ranger.docker.net@DOCKER.NET solr/hadoop-solr.docker.net@DOCKER.NET HTTP/hadoop-solr.docker.net@DOCKER.NET'
 
+kadmin.local -q 'addprinc -randkey knox/hadoop-knox.docker.net'
+kadmin.local -q 'addprinc -randkey HTTP/hadoop-knox.docker.net'
+kadmin.local -q 'ktadd -norandkey -k knox.service.keytab HTTP/hadoop-knox.docker.net knox/hadoop-knox.docker.net'
 chmod +r ./*

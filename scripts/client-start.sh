@@ -36,7 +36,8 @@ firefox about:policies \
     https://hadoop-rmanager.docker.net:8090 \
     https://hadoop-history.docker.net:19890 \
     https://hadoop-solr.docker.net:8983 \
-    https://hadoop-ranger.docker.net:6182
+    https://hadoop-ranger.docker.net:6182 \
+    https://hadoop-knox.docker.net:8443/gateway/manager/admin-ui/
 
 # sleep infinity&
 # wait $!
