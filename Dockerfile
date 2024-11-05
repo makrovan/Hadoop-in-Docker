@@ -206,6 +206,7 @@ RUN adduser --ingroup knox --disabled-password --gecos "" knox
 ADD https://dlcdn.apache.org/knox/2.0.0/knox-2.0.0.zip /usr/local
 RUN unzip /usr/local/knox-2.0.0.zip -d /usr/local
 RUN ln -s /usr/local/knox-2.0.0 /usr/local/knox
+# COPY ./Config/Knox/docker.xml /usr/local/knox/deployments
 RUN chown knox:knox -R /usr/local/knox/
 COPY ./Config/Kerberos/krb5.conf /etc/krb5.conf
 COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
@@ -214,7 +215,6 @@ COPY --chmod=777 ./scripts/kdc-keytabs-waiting.sh /opt/bin/kdc_waiting
 COPY --chmod=777 ./scripts/utils/myrun_scripts.sh /opt/bin/myrun_scripts
 COPY --chmod=777 ./scripts/utils/mywait.sh /opt/bin/mywait
 COPY --chmod=777 ./scripts/knox/init.sh /opt/bin/setup
-COPY ./Config/Knox/myproxy.xml /tmp
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ENV PATH=$PATH:$JAVA_HOME/bin
 ENV HADOOP_HOME=/usr/local/hadoop

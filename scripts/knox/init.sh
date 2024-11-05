@@ -10,16 +10,15 @@ keytool -keystore /usr/local/knox/data/security/keystores/gateway.jks -storepass
 # keytool -v -list -storetype jks -keystore /usr/local/knox/data/security/keystores/gateway.jks -storepass hadoop
 
 # https://knox.apache.org/books/knox-2-1-0/user-guide.html#Secure+Clusters
-sed -i 's/\/etc\/knox\/conf\/knox.service.keytab/\/etc\/security\/keytabs\/knox.service.keytab/' /usr/local/knox/templates/krb5JAASLogin.conf
-sed -i 's/knox@EXAMPLE.COM/knox\/hadoop-knox.docker.net/'
 mkdir -p /etc/knox/conf/
 cp /etc/krb5.conf /etc/knox/conf/
 cp /usr/local/knox/templates/krb5JAASLogin.conf /etc/knox/conf
+sed -i 's/\/etc\/knox\/conf\/knox.service.keytab/\/etc\/security\/keytabs\/knox.service.keytab/' /etc/knox/conf/krb5JAASLogin.conf
+sed -i 's/knox@EXAMPLE.COM/knox\/hadoop-knox.docker.net@DOCKER.NET/' /etc/knox/conf/krb5JAASLogin.conf
 xmlstarlet ed --inplace --update "/configuration/property[name='gateway.hadoop.kerberos.secured']/value" --value 'true' /usr/local/knox/conf/gateway-site.xml
 xmlstarlet ed --inplace --update "/configuration/property[name='sun.security.krb5.debug']/value" --value 'true' /usr/local/knox/conf/gateway-site.xml
 
-# edit knoxsso for admin-ui (https://hadoop-knox.docker.net:8443/gateway/manager/admin-ui/)
-# https://knox.apache.org/books/knox-2-1-0/user-guide.html#Admin+UI
+# edit knoxsso for admin-ui (https://hadoop-knox.docker.net:8443/gateway/manager/admin-ui/) https://knox.apache.org/books/knox-2-1-0/user-guide.html#Admin+UI
 # https://knox.apache.org/books/knox-2-1-0/user-guide.html#Authentication
 xmlstarlet ed --inplace --update "/topology/gateway/provider[role='authentication']/param[name='main.ldapRealm.userDnTemplate']/value" --value 'uid={0},ou=users,dc=docker,dc=net' /usr/local/knox/conf/topologies/knoxsso.xml
 xmlstarlet ed --inplace --update "/topology/gateway/provider[role='authentication']/param[name='main.ldapRealm.contextFactory.url']/value" --value 'ldaps://ldap-server.docker.net' /usr/local/knox/conf/topologies/knoxsso.xml
@@ -30,10 +29,12 @@ xmlstarlet ed --inplace --update "/configuration/property[name='gateway.group.co
 xmlstarlet ed --inplace --update "/configuration/property[name='gateway.group.config.hadoop.security.group.mapping.ldap.bind.password']/value" --value 'hadoop' /usr/local/knox/conf/gateway-site.xml
 xmlstarlet ed --inplace --update "/configuration/property[name='gateway.group.config.hadoop.security.group.mapping.ldap.url']/value" --value 'ldaps://ldap-server.docker.net' /usr/local/knox/conf/gateway-site.xml
 # https://knox.apache.org/books/knox-2-1-0/user-guide.html#Authorization
-xmlstarlet ed --inplace --update "/topology/gateway/provider[role='authorization']/param[name='knox.acl']/value" --value '*;*;*' /usr/local/knox/conf/topologies/manager.xml
+# xmlstarlet ed --inplace --update "/topology/gateway/provider[role='authorization']/param[name='knox.acl']/value" --value '*;*;*' /usr/local/knox/conf/topologies/manager.xml
 # https://knox.apache.org/books/knox-2-1-0/user-guide.html#Gateway+Server+Configuration
 xmlstarlet ed --inplace --update "/configuration/property[name='gateway.dispatch.whitelist']/value" --value '.*docker\.net.*' /usr/local/knox/conf/gateway-site.xml
 
+xmlstarlet ed --inplace --update "/configuration/property[name='gateway.group.config.hadoop.security.group.mapping.ldap.base']/value" --value 'dc=docker,dc=net' /usr/local/knox/conf/gateway-site.xml
+xmlstarlet ed --inplace --update "/configuration/property[name='gateway.group.config.hadoop.security.group.mapping.ldap.search.filter.user']/value" --value '(&(objectclass=person)(uid={0}))' /usr/local/knox/conf/gateway-site.xml
 # https://knox.apache.org/books/knox-2-1-0/user-guide.html#HadoopAuth+Authentication+Provider
 # cp /tmp/myproxy.xml /usr/local/knox/conf/topologies/myproxy.xml
 

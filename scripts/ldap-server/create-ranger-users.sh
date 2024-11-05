@@ -25,7 +25,7 @@ objectClass: person
 uid: ldapuser
 sn: u
 givenName: L
-cn: ldap_user
+cn: ldapuser
 displayName: Ldap User
 uidNumber: 10000
 gidNumber: 5001
@@ -42,7 +42,7 @@ objectClass: person
 uid: ldapuser1
 sn: u1
 givenName: L
-cn: ldap_user1
+cn: ldapuser1
 displayName: Ldap User1
 uidNumber: 10001
 gidNumber: 5001
@@ -59,7 +59,7 @@ objectClass: person
 uid: ldapuser2
 sn: u2
 givenName: L
-cn: ldap_user2
+cn: ldapuser2
 displayName: Ldap User1
 uidNumber: 10002
 gidNumber: 5001
@@ -76,7 +76,7 @@ objectClass: person
 uid: ldapuser3
 sn: u3
 givenName: L
-cn: ldap_user3
+cn: ldapuser3
 displayName: Ldap User3
 uidNumber: 10003
 gidNumber: 5001
@@ -93,7 +93,7 @@ objectClass: person
 uid: ldapuser4
 sn: u4
 givenName: L
-cn: ldap_user4
+cn: ldapuser4
 displayName: Ldap User4
 uidNumber: 10004
 gidNumber: 5001
@@ -113,6 +113,12 @@ objectClass: groupOfNames
 member: uid=ldapuser3,ou=users,dc=docker,dc=net
 member: uid=ldapuser4,ou=users,dc=docker,dc=net
 cn: rangergroup_b
+
+dn: cn=admin,ou=groups,dc=docker,dc=net
+objectclass: groupOfNames
+cn: admin
+description: admin group for knox
+member: uid=ldapuser,ou=users,dc=docker,dc=net
 EOF
 
 ldappasswd -D 'cn=admin,dc=docker,dc=net' -H ldaps:/// -w hadoop -x "uid=ldapuser,ou=users,dc=docker,dc=net" -s "pass"
