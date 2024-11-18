@@ -46,132 +46,113 @@
             </param>
             <param>
                 <name>main.ldapRealm.userDnTemplate</name>
-                <value>uid={0},ou=people,dc=hadoop,dc=apache,dc=org</value>
+                <value>uid={0},ou=users,dc=docker,dc=net</value>
             </param>
             <param>
                 <name>main.ldapRealm.contextFactory.url</name>
-                <value>ldap://localhost:33389</value>
+                <value>ldaps://ldap-server.docker.net</value>
             </param>
             <param>
                 <name>main.ldapRealm.contextFactory.authenticationMechanism</name>
                 <value>simple</value>
             </param>
-            <param>
+            <!-- <param>
                 <name>urls./knoxtoken/api/v2/jwks.json</name>
                 <value>anon</value>
             </param>
             <param>
                 <name>urls./knoxtoken/api/v1/jwks.json</name>
                 <value>anon</value>
-            </param>
+            </param> -->
             <param>
                 <name>urls./**</name>
                 <value>authcBasic</value>
             </param>
         </provider>
 
+        <!-- https://knox.apache.org/books/knox-2-1-0/user-guide.html#Default+Identity+Assertion+Provider -->
         <provider>
             <role>identity-assertion</role>
             <name>Default</name>
             <enabled>true</enabled>
+            <param>
+                <name>principal.mapping</name>
+                <value>ldapuser=hdfs;</value>
+            </param>
+            <!-- <param>
+                <name>group.principal.mapping</name>
+                <value>*=hadoop;</value>
+            </param>
+            <param>
+                <name>hadoop.proxyuser.impersonation.enabled</name>
+                <value>false</value>
+            </param>
+            <param>
+                <name>hadoop.proxyuser.admin.users</name>
+                <value>*</value>
+            </param>
+            <param>
+                <name>hadoop.proxyuser.admin.groups</name>
+                <value>*</value>
+            </param>
+            <param>
+                <name>hadoop.proxyuser.admin.hosts</name>
+                <value>*</value>
+            </param> -->
         </provider>
+        
+        <!-- https://knox.apache.org/books/knox-2-1-0/user-guide.html#Authorization -->
+        <!-- <provider>
+            <role>authorization</role>
+            <name>AclsAuthz</name>
+            <enabled>true</enabled>
+            <param>
+                <name>webhdfs.acl</name>
+                <value>*;*;*</value>
+            </param>
+            <param>
+                <name>hdfsui.acl</name>
+                <value>*;*;*</value>
+            </param>
+        </provider> -->
 
+        <!-- https://knox.apache.org/books/knox-2-1-0/user-guide.html#Hostmap+Provider -->
         <provider>
             <role>hostmap</role>
             <name>static</name>
-            <enabled>true</enabled>
-            <param>
-                <name>localhost</name>
-                <value>sandbox,sandbox.hortonworks.com</value>
-            </param>
+            <enabled>false</enabled>
         </provider>
 
     </gateway>
 
     <service>
         <role>NAMENODE</role>
-        <url>hdfs://localhost:8020</url>
-    </service>
-
-    <service>
-        <role>JOBTRACKER</role>
-        <url>rpc://localhost:8050</url>
+        <url>hdfs://hadoop-master.docker.net:8020</url>
     </service>
 
     <service>
         <role>WEBHDFS</role>
-        <url>http://localhost:50070/webhdfs</url>
+        <url>https://hadoop-master.docker.net:9871/webhdfs</url>
     </service>
 
-    <service>
-        <role>WEBHCAT</role>
-        <url>http://localhost:50111/templeton</url>
-    </service>
-
-    <service>
-        <role>OOZIE</role>
-        <url>http://localhost:11000/oozie</url>
-        <param>
-            <name>replayBufferSize</name>
-            <value>8</value>
-        </param>
-    </service>
-
-    <service>
-        <role>WEBHBASE</role>
-        <url>http://localhost:60080</url>
-        <param>
-            <name>replayBufferSize</name>
-            <value>8</value>
-        </param>
-    </service>
-
-    <service>
-        <role>HIVE</role>
-        <url>http://localhost:10001/cliservice</url>
-        <param>
-            <name>replayBufferSize</name>
-            <value>8</value>
-        </param>
-    </service>
-
-    <service>
+    <!-- <service>
         <role>RESOURCEMANAGER</role>
-        <url>http://localhost:8088/ws</url>
+        <url>https://hadoop-rmanager.docker.net:8090/ws</url>
     </service>
 
     <service>
-        <role>DRUID-COORDINATOR-UI</role>
-        <url>http://localhost:8081</url>
+        <role>HDFSUI</role>
+        <url>https://hadoop-master.docker.net:9871</url>
     </service>
 
     <service>
-        <role>DRUID-COORDINATOR</role>
-        <url>http://localhost:8081</url>
-    </service>
-
-    <service>
-        <role>DRUID-BROKER</role>
-        <url>http://localhost:8082</url>
-    </service>
-
-    <service>
-        <role>DRUID-ROUTER</role>
-        <url>http://localhost:8082</url>
+        <role>RANGER</role>
+        <url>https://hadoop-ranger.docker.net:6182</url>
     </service>
     
     <service>
-        <role>DRUID-OVERLORD</role>
-        <url>http://localhost:8090</url>
-    </service>
+        <role>RANGERUI</role>
+        <url>https://hadoop-ranger.docker.net:6182</url>
+    </service> -->
 
-    <service>
-        <role>DRUID-OVERLORD-UI</role>
-        <url>http://localhost:8090</url>
-    </service>
-
-    <service>
-        <role>HUE</role>
-        <url>http://localhost:8889</url>
-    </service>
 </topology>

@@ -21,7 +21,7 @@
 <!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/ClusterSetup.html -->
 	<property>
 		<name>fs.defaultFS</name>
-		<value>hdfs://hadoop-master.docker.net:9000</value>
+		<value>hdfs://hadoop-master.docker.net:8020</value>
 	</property>
 	<property>
 		<name>hadoop.security.authentication</name>

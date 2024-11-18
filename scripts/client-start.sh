@@ -37,10 +37,9 @@ firefox about:policies \
     https://hadoop-history.docker.net:19890 \
     https://hadoop-solr.docker.net:8983 \
     https://hadoop-ranger.docker.net:6182 \
-    https://hadoop-knox.docker.net:8443/gateway/manager/admin-ui/
-
-# sleep infinity&
-# wait $!
+    https://hadoop-knox.docker.net:8443/gateway/manager/admin-ui
+    # https://hadoop-knox.docker.net:8443/hdfs \
+    # https://hadoop-knox.docker.net:8443/ranger
 
 #xhost +
 # network.negotiate-auth.trusted-uris docker.net

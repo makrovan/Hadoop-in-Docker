@@ -25,7 +25,7 @@ RUN chown hdfs:hadoop -R /usr/local/hadoop/data/dataNode
 RUN chown hdfs:hadoop -R /usr/local/hadoop/logs
 RUN chown yarn:hadoop -R /tmp/hadoop-yarn/nm-local-dir
 RUN chown yarn:hadoop -R /usr/local/hadoop/logs/userlogs
-RUN useradd -g hadoop --disabled-password --gecos "" knox
+RUN adduser --ingroup hadoop --disabled-password --gecos "" knox
 COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
 COPY ./Config/Hadoop/http-signature.secret /etc/http-signature.secret
 COPY ./Config/Hadoop/log4j.properties /usr/local/hadoop/etc/hadoop/log4j.properties
@@ -206,7 +206,7 @@ RUN adduser --ingroup knox --disabled-password --gecos "" knox
 ADD https://dlcdn.apache.org/knox/2.0.0/knox-2.0.0.zip /usr/local
 RUN unzip /usr/local/knox-2.0.0.zip -d /usr/local
 RUN ln -s /usr/local/knox-2.0.0 /usr/local/knox
-# COPY ./Config/Knox/docker.xml /usr/local/knox/deployments
+COPY ./Config/Knox/docker-proxy.xml /usr/local/knox/conf/topologies
 RUN chown knox:knox -R /usr/local/knox/
 COPY ./Config/Kerberos/krb5.conf /etc/krb5.conf
 COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
@@ -221,10 +221,10 @@ ENV HADOOP_HOME=/usr/local/hadoop
 ENV PATH="$PATH:/opt/bin/"
 ENV GATEWAY_HOME=/usr/local/knox
 ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && setup && \
-                                # su -c '/usr/local/knox/bin/knoxcli.sh create-master --master hadoop' knox && \
-                                # su -c './usr/local/knox/bin/gateway.sh start' knox && \
-                                sleep infinity && \
-                                mywait" ]
+                                su -c './usr/local/knox/bin/gateway.sh start' knox && \
+                                tail -f /usr/local/knox/logs/gateway.log" ]
+                                # mywait && \
+                                # sleep infinity" ]
 
 # client in mozilla
 FROM alpine AS hadoop-client
