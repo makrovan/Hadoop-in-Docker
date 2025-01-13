@@ -20,102 +20,32 @@
     <gateway>
 
         <provider>
-            <role>authentication</role>
-            <name>ShiroProvider</name>
+            <role>federation</role>
+            <name>SSOCookieProvider</name>
             <enabled>true</enabled>
-            <param>
-                <!-- 
-                session timeout in minutes,  this is really idle timeout,
-                defaults to 30mins, if the property value is not defined,, 
-                current client authentication would expire if client idles contiuosly for more than this value
-                -->
-                <name>sessionTimeout</name>
-                <value>30</value>
-            </param>
-            <param>
-                <name>main.ldapRealm</name>
-                <value>org.apache.knox.gateway.shirorealm.KnoxLdapRealm</value>
-            </param>
-            <param>
-                <name>main.ldapContextFactory</name>
-                <value>org.apache.knox.gateway.shirorealm.KnoxLdapContextFactory</value>
-            </param>
-            <param>
-                <name>main.ldapRealm.contextFactory</name>
-                <value>$ldapContextFactory</value>
-            </param>
-            <param>
-                <name>main.ldapRealm.userDnTemplate</name>
-                <value>uid={0},ou=users,dc=docker,dc=net</value>
-            </param>
-            <param>
-                <name>main.ldapRealm.contextFactory.url</name>
-                <value>ldaps://ldap-server.docker.net</value>
-            </param>
-            <param>
-                <name>main.ldapRealm.contextFactory.authenticationMechanism</name>
-                <value>simple</value>
-            </param>
-            <!-- <param>
-                <name>urls./knoxtoken/api/v2/jwks.json</name>
-                <value>anon</value>
-            </param>
-            <param>
-                <name>urls./knoxtoken/api/v1/jwks.json</name>
-                <value>anon</value>
-            </param> -->
-            <param>
-                <name>urls./**</name>
-                <value>authcBasic</value>
-            </param>
         </provider>
-
-        <!-- https://knox.apache.org/books/knox-2-1-0/user-guide.html#Default+Identity+Assertion+Provider -->
         <provider>
             <role>identity-assertion</role>
-            <name>Default</name>
+            <name>HadoopGroupProvider</name>
             <enabled>true</enabled>
             <param>
-                <name>principal.mapping</name>
-                <value>ldapuser=hdfs;</value>
+                <name>CENTRAL_GROUP_CONFIG_PREFIX</name>
+                <value>gateway.group.config.</value>
             </param>
-            <!-- <param>
-                <name>group.principal.mapping</name>
-                <value>*=hadoop;</value>
-            </param>
-            <param>
-                <name>hadoop.proxyuser.impersonation.enabled</name>
-                <value>false</value>
-            </param>
-            <param>
-                <name>hadoop.proxyuser.admin.users</name>
-                <value>*</value>
-            </param>
-            <param>
-                <name>hadoop.proxyuser.admin.groups</name>
-                <value>*</value>
-            </param>
-            <param>
-                <name>hadoop.proxyuser.admin.hosts</name>
-                <value>*</value>
-            </param> -->
         </provider>
-        
-        <!-- https://knox.apache.org/books/knox-2-1-0/user-guide.html#Authorization -->
-        <!-- <provider>
+        <provider>
             <role>authorization</role>
             <name>AclsAuthz</name>
             <enabled>true</enabled>
             <param>
-                <name>webhdfs.acl</name>
-                <value>*;*;*</value>
+                <name>knox.acl.mode</name>
+                <value>OR</value>
             </param>
             <param>
-                <name>hdfsui.acl</name>
-                <value>*;*;*</value>
+                <name>knox.acl</name>
+                <value>KNOX_ADMIN_USERS;KNOX_ADMIN_GROUPS;*</value>
             </param>
-        </provider> -->
-
+        </provider>
         <!-- https://knox.apache.org/books/knox-2-1-0/user-guide.html#Hostmap+Provider -->
         <provider>
             <role>hostmap</role>
@@ -135,16 +65,28 @@
         <url>https://hadoop-master.docker.net:9871/webhdfs</url>
     </service>
 
-    <!-- <service>
+    <service>
         <role>RESOURCEMANAGER</role>
         <url>https://hadoop-rmanager.docker.net:8090/ws</url>
     </service>
 
     <service>
         <role>HDFSUI</role>
+        <!-- https://issues.apache.org/jira/browse/KNOX-1644 -->
+        <version>2.7.0</version>
         <url>https://hadoop-master.docker.net:9871</url>
     </service>
 
+    <service>
+        <role>JOBHISTORYUI</role>
+        <url>https://hadoop-history.docker.net:19890</url>
+    </service>
+    
+    <service>
+        <role>YARNUI</role>
+        <url>https://hadoop-rmanager.docker.net:8090</url>
+    </service>
+    
     <service>
         <role>RANGER</role>
         <url>https://hadoop-ranger.docker.net:6182</url>
@@ -153,6 +95,6 @@
     <service>
         <role>RANGERUI</role>
         <url>https://hadoop-ranger.docker.net:6182</url>
-    </service> -->
+    </service>
 
 </topology>

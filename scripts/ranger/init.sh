@@ -90,6 +90,9 @@ sed -i 's/<property\/>/<property><name>xasecure.audit.jaas.Client.option.debug<\
 xmlstarlet ed --inplace --delete "/configuration/property[name='ranger.solr.audit.user']" /etc/ranger/admin/conf/ranger-admin-site.xml
 xmlstarlet ed --inplace --delete "/configuration/property[name='ranger.solr.audit.user.password']" /etc/ranger/admin/conf/ranger-admin-site.xml
 
+# KNOX_PK=$(cat /etc/kpk/knox_pubkey)
+xmlstarlet edit --inplace --update "/configuration/property[name='ranger.sso.publicKey']/value" --value $(cat /etc/kpk/knox_pubkey) /etc/ranger/admin/conf/ranger-admin-site.xml
+
 xmlstarlet ed -L /etc/ranger/admin/conf/ranger-admin-site.xml
 
 ranger-admin start

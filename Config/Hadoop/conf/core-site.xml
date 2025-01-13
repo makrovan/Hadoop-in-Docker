@@ -109,10 +109,10 @@
 <!-- https://knox.apache.org/books/knox-2-1-0/user-guide.html#Configuration -->
         <property>
                 <name>hadoop.proxyuser.knox.groups</name>
-                <value>users</value>
+                <value>*</value>
         </property>
         <property>
                 <name>hadoop.proxyuser.knox.hosts</name>
-                <value>hadoop-knox.docker.net</value>
+                <value>*</value>
         </property>
 </configuration>

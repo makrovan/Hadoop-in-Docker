@@ -1,0 +1,29 @@
+<!-- https://knox.apache.org/books/knox-2-1-0/user-guide.html#Ranger+Admin+Console -->
+<topology>
+    <gateway>
+        <!-- <provider>
+            <role>authentication</role>
+            <name>Anonymous</name>
+            <enabled>true</enabled>
+        </provider> -->
+        <provider>
+            <role>federation</role>
+            <name>SSOCookieProvider</name>
+            <enabled>true</enabled>
+        </provider>
+        <provider>
+            <role>identity-assertion</role>
+            <name>Default</name>
+            <enabled>false</enabled>
+        </provider>
+    </gateway>
+    <service>
+        <role>RANGER</role>
+        <url>https://hadoop-ranger.docker.net:6182</url>
+    </service>
+
+    <service>
+        <role>RANGERUI</role>
+        <url>https://hadoop-ranger.docker.net:6182</url>
+    </service>
+</topology>

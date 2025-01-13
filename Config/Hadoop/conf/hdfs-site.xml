@@ -93,4 +93,17 @@
         <name>dfs.data.transfer.protection</name>
         <value>authentication</value>
     </property>
+<!-- https://knox.apache.org/books/knox-2-1-0/user-guide.html#WebHDFS -->
+    <property>
+        <name>dfs.webhdfs.enabled</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>dfs.namenode.rpc-address</name>
+        <value>hadoop-master.docker.net:8020</value>
+    </property>
+    <property>
+        <name>dfs.https.namenode.https-address</name>
+        <value>hadoop-knox.docker.net:9871</value>
+    </property>
 </configuration>

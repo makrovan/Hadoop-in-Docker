@@ -11,7 +11,7 @@ cp /etc/CA/mycacert.pem /usr/local/share/ca-certificates/mycacert.crt
 # # cat /usr/local/share/ca-certificates/mycacert.crt >> /etc/ssl/certs/ca-certificates.crt
 update-ca-certificates
 
-kinit -k -t /etc/security/keytabs/my.keytab hdfs@DOCKER.NET 
+# kinit -k -t /etc/security/keytabs/my.keytab hdfs@DOCKER.NET 
 
 # for solr test
 kinit -k -t /etc/security/keytabs/ranger.keytab rangeradmin/hadoop-ranger.docker.net@DOCKER.NET
@@ -37,9 +37,12 @@ firefox about:policies \
     https://hadoop-history.docker.net:19890 \
     https://hadoop-solr.docker.net:8983 \
     https://hadoop-ranger.docker.net:6182 \
-    https://hadoop-knox.docker.net:8443/gateway/manager/admin-ui
-    # https://hadoop-knox.docker.net:8443/hdfs \
-    # https://hadoop-knox.docker.net:8443/ranger
+    https://hadoop-knox.docker.net:8443/hdfs/dfshealth.html#tab-overview \
+    https://hadoop-knox.docker.net:8443/yarn \
+    https://hadoop-knox.docker.net:8443/jobhistory \
+    https://hadoop-knox.docker.net:8443/gateway/manager/admin-ui \
+    https://hadoop-knox.docker.net:8443/ranger
+    # https://hadoop-ranger.docker.net:6182/index.html#/policymanager/resource
 
 #xhost +
 # network.negotiate-auth.trusted-uris docker.net

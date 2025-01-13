@@ -23,6 +23,11 @@ services:
       hadoop-ranger.docker.net: 192.168.9.18
       hadoop-knox.docker.net: 192.168.9.19
       hadoop-client.docker.net: 192.168.9.100
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host1"
     
   kdc-server:
     build:
@@ -39,6 +44,11 @@ services:
     extra_hosts: *hosts
     depends_on:
       - ldap-server
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host1"
 
   hadoop-master:
     build: 
@@ -58,6 +68,11 @@ services:
       - kdc-server
       - hadoop-worker1
       - hadoop-worker2
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host1"
 
   hadoop-worker1:
     build:
@@ -75,6 +90,11 @@ services:
     extra_hosts: *hosts
     depends_on:
       - kdc-server
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host1"
 
   hadoop-worker2:
     build: 
@@ -92,6 +112,11 @@ services:
     extra_hosts: *hosts
     depends_on:
       - kdc-server
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host1"
         
   hadoop-rmanager:
     build: 
@@ -110,6 +135,11 @@ services:
     depends_on:
       - kdc-server
       - hadoop-master
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host1"
 
   hadoop-history:
     build: 
@@ -126,6 +156,11 @@ services:
     extra_hosts: *hosts
     depends_on:
       - hadoop-rmanager
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host1"
   
   hadoop-client:
     build:
@@ -145,6 +180,11 @@ services:
     extra_hosts: *hosts
     depends_on:
       - kdc-server
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host2"
     
   ranger-distrib:
     build:
@@ -154,6 +194,11 @@ services:
     volumes:
       - ./Data/Ranger_distrib/ranger:/ranger
       - ./Data/Ranger_distrib/.m2:/.m2
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host2"
       
   hadoop-postgres:
     image: postgres
@@ -173,6 +218,11 @@ services:
       docker.net:
         ipv4_address: 192.168.9.17
     extra_hosts: *hosts
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host2"
 
   hadoop-solr:
     build: 
@@ -189,6 +239,11 @@ services:
     extra_hosts: *hosts
     depends_on:
       - kdc-server
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host2"
 
   hadoop-ranger:
     build: 
@@ -204,12 +259,17 @@ services:
       docker.net:
         ipv4_address: 192.168.9.18
     extra_hosts: *hosts
-    ports:
-      - "6182:6182"
+    # ports:
+    #   - "6182:6182"
     depends_on:
       - kdc-server
       - hadoop-postgres
       - hadoop-solr
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host2"
 
   hadoop-knox:
     build:
@@ -229,12 +289,17 @@ services:
     extra_hosts: *hosts
     depends_on:
       - kdc-server
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.TAG==host2"
  
 networks:
     docker.net:
       driver: bridge
       name: docker.net
-      enable_ipv6: false    
+      # enable_ipv6: false    
       ipam:
         driver: default
         config:

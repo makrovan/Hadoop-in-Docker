@@ -3,11 +3,12 @@ FROM ubuntu AS hadoop-image
 ARG DEBIAN_FRONTEND=noninteractive
 # https://stackoverflow.com/questions/24991136/docker-build-could-not-resolve-archive-ubuntu-com-apt-get-fails-to-install-a
 RUN apt update
-RUN apt install -y openjdk-8-jdk 
+RUN apt install -y openjdk-11-jdk 
 RUN apt install -y krb5-user 
 RUN apt install -y ca-certificates
 WORKDIR /tmp
-ADD https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz /tmp/
+# ADD https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz /tmp/
+COPY ./Data/Distrib/hadoop-3.4.0.tar.gz /tmp/
 RUN tar xzf hadoop-3.4.0.tar.gz -C /usr/local
 RUN rm hadoop-3.4.0.tar.gz
 RUN mv /usr/local/hadoop-3.4.0 /usr/local/hadoop
@@ -34,6 +35,7 @@ COPY --chmod=777 ./scripts/create-https-key.sh /opt/bin/https_key_init
 COPY --chmod=777 ./scripts/kdc-keytabs-waiting.sh /opt/bin/kdc_waiting
 COPY --chmod=777 ./scripts/utils/mywait.sh /opt/bin/mywait
 COPY ./Config/Kerberos/krb5.conf /etc/krb5kdc/krb5.conf
+# COPY --chmod=777 ./scripts/java8-sec-fix.sh /opt/bin/java_fix
 ENV KRB5_CONFIG="/etc/krb5kdc/krb5.conf"
 # https://stackoverflow.com/questions/33132768/kerberos-still-using-default-etc-krb5-conf-file-even-after-setting-krb5-config
 ENV HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.conf=/etc/krb5kdc/krb5.conf"
@@ -44,7 +46,7 @@ ENV HADOOP_HDFS_HOME="$HADOOP_HOME"
 ENV HADOOP_MAPRED_HOME="$HADOOP_HOME"
 ENV HADOOP_YARN_HOME="$HADOOP_HOME"
 ENV HADOOP_OS_TYPE="Linux"
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH="$PATH:/opt/bin:$HADOOP_HOME/bin:$JAVA_HOME/bin"
 # https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SecureMode.html#Troubleshooting
 ENV HADOOP_JAAS_DEBUG true
@@ -144,7 +146,8 @@ COPY --chmod=777 ./scripts/utils/myrun_scripts.sh /opt/bin/myrun_scripts
 # COPY --chmod=777 ./scripts/utils/mywait.sh /opt/bin/mywait
 COPY ./Data/Ranger_distrib/ranger/security-admin/contrib/solr_for_audit_setup/conf/solrconfig.xml /tmp/solr/schema/solrconfig.xml
 COPY ./Data/Ranger_distrib/ranger/security-admin/contrib/solr_for_audit_setup/conf/managed-schema /tmp/solr/schema/schema.xml
-ADD https://archive.apache.org/dist/lucene/solr/8.4.1/solr-8.4.1.tgz /usr/local/
+# ADD https://archive.apache.org/dist/lucene/solr/8.4.1/solr-8.4.1.tgz /usr/local/
+COPY ./Data/Distrib/solr-8.4.1.tgz /usr/local/
 RUN tar zxf /usr/local/solr-8.4.1.tgz -C /usr/local
 RUN ln -s /usr/local/solr-8.4.1 /usr/local/solr
 COPY ./Config/Solr/solr.in.sh /usr/local/solr/bin/solr.in.sh
@@ -184,6 +187,8 @@ COPY --chown=root:root --chmod=777 ./scripts/ranger/init.sh /opt/bin/setup
 COPY ./Data/Ranger_distrib/ranger/target/ranger-2.5.1-SNAPSHOT-admin.tar.gz /usr/local/
 COPY ./Data/Ranger_distrib/ranger/target/ranger-2.5.1-SNAPSHOT-usersync.tar.gz /usr/local/
 COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
+COPY ./Config/Hadoop/http-signature.secret /etc/http-signature.secret
+# COPY --chmod=777 ./scripts/java8-sec-fix.sh /opt/bin/java_fix
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ENV PATH=$PATH:$JAVA_HOME/bin
 ENV PATH="$PATH:/opt/bin/"
@@ -195,36 +200,43 @@ ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && setup && mywai
 # apache knox
 FROM ubuntu AS hadoop-knox
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt update 
-RUN apt install -y openjdk-8-jdk 
+RUN apt update -y
+RUN apt install -y openjdk-11-jdk 
 RUN apt install -y krb5-user
 RUN apt install -y ca-certificates
 RUN apt install -y unzip
 RUN apt install -y xmlstarlet
+RUN apt install -y curl
 RUN addgroup knox
 RUN adduser --ingroup knox --disabled-password --gecos "" knox
-ADD https://dlcdn.apache.org/knox/2.0.0/knox-2.0.0.zip /usr/local
+# ADD https://dlcdn.apache.org/knox/2.0.0/knox-2.0.0.zip /usr/local
+COPY ./Data/Distrib/knox-2.0.0.zip /usr/local
 RUN unzip /usr/local/knox-2.0.0.zip -d /usr/local
 RUN ln -s /usr/local/knox-2.0.0 /usr/local/knox
 COPY ./Config/Knox/docker-proxy.xml /usr/local/knox/conf/topologies
+# COPY ./Config/Knox/ranger-proxy.xml /usr/local/knox/conf/topologies
 RUN chown knox:knox -R /usr/local/knox/
 COPY ./Config/Kerberos/krb5.conf /etc/krb5.conf
 COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
+COPY ./Config/Hadoop/http-signature.secret /etc/http-signature.secret
 COPY --chmod=777 ./scripts/create-https-key.sh /opt/bin/https_key_init
 COPY --chmod=777 ./scripts/kdc-keytabs-waiting.sh /opt/bin/kdc_waiting
 COPY --chmod=777 ./scripts/utils/myrun_scripts.sh /opt/bin/myrun_scripts
 COPY --chmod=777 ./scripts/utils/mywait.sh /opt/bin/mywait
 COPY --chmod=777 ./scripts/knox/init.sh /opt/bin/setup
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+COPY --chmod=777 ./scripts/knox/get_pk.sh /opt/bin/get_pk
+COPY ./Data/Ranger_distrib/ranger/target/ranger-2.5.1-SNAPSHOT-knox-plugin.tar.gz /usr/local/
+COPY --chmod=777 ./scripts/knox/install-ranger-plugin.sh /opt/bin/ranger_init
+COPY ./Config/Ranger/knox/install.properties /tmp/knox/install.properties
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH=$PATH:$JAVA_HOME/bin
 ENV HADOOP_HOME=/usr/local/hadoop
 ENV PATH="$PATH:/opt/bin/"
 ENV GATEWAY_HOME=/usr/local/knox
-ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && setup && \
-                                su -c './usr/local/knox/bin/gateway.sh start' knox && \
-                                tail -f /usr/local/knox/logs/gateway.log" ]
-                                # mywait && \
-                                # sleep infinity" ]
+ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && get_pk && kdc_waiting && setup && ranger_init && \
+                                su -c '/usr/local/knox/bin/gateway.sh start' knox && \
+                                tail -f /usr/local/knox/logs/gateway.log " ]
+                                # mywait " ]
 
 # client in mozilla
 FROM alpine AS hadoop-client
@@ -255,7 +267,8 @@ RUN yum install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel
 ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk/
 # ENV JAVA_HOME /usr/lib/jvm/java-11
 ENV PATH $JAVA_HOME/bin:$PATH
-ADD https://archive.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz .
+# ADD https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.6.3/apache-maven-3.6.3-bin.tar.gz .
+COPY ./Data/Distrib/apache-maven-3.6.3-bin.tar.gz .
 RUN tar xfz apache-maven-3.6.3-bin.tar.gz
 RUN ln -sf /tools/apache-maven-3.6.3 /tools/maven
 ENV  PATH /tools/maven/bin:$PATH
