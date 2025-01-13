@@ -21,7 +21,7 @@
 <!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/ClusterSetup.html -->
 	<property>
 		<name>fs.defaultFS</name>
-		<value>hdfs://hadoop-master.docker.net:9000</value>
+		<value>hdfs://hadoop-master.docker.net:8020</value>
 	</property>
 	<property>
 		<name>hadoop.security.authentication</name>
@@ -105,5 +105,14 @@
         <property>
                 <name>hadoop.http.cross-origin.max-age</name>
                 <value>1800</value>
+        </property>
+<!-- https://knox.apache.org/books/knox-2-1-0/user-guide.html#Configuration -->
+        <property>
+                <name>hadoop.proxyuser.knox.groups</name>
+                <value>*</value>
+        </property>
+        <property>
+                <name>hadoop.proxyuser.knox.hosts</name>
+                <value>*</value>
         </property>
 </configuration>
