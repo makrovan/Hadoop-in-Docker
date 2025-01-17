@@ -1,5 +1,5 @@
-# 192.168.1.119:5000 - docker egistry port
-# 192.168.1.119:/share/Data - nfs server of Data directory
+# 192.168.1.119:5000 - docker registry
+# 192.168.1.119:/share/Data - nfs server with :/share/Data/(CA/KDC/Sync)
 services:
   ldap-server:
     image: 192.168.1.119:5000/ldap_server
@@ -42,7 +42,154 @@ services:
       mode: global
       placement:
         constraints:
+          - node.labels.TAG==manager
+
+  hadoop-master:
+    image: 192.168.1.119:5000/hadoop-master
+    build:
+      context: ./..
+      target: hadoop-master
+    volumes:
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+      - ~/Data/NameNode:/usr/local/hadoop/data/nameNode
+    container_name: hadoop-master
+    hostname: hadoop-master.docker.net
+    networks:
+      hadoopnet:
+        aliases: 
+          - hadoop-master.docker.net
+    depends_on:
+      - kdc-server
+      - hadoop-worker1
+      - hadoop-worker2
+    deploy:
+      mode: global
+      placement:
+        constraints:
           - node.labels.TAG==worker-1
+
+  hadoop-worker1:
+    image: 192.168.1.119:5000/hadoop-worker
+    build:
+      context: ./..
+      target: hadoop-worker
+    volumes:
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+      - ~/Data/Worker1:/usr/local/hadoop/data/dataNode
+    container_name: hadoop-worker1
+    hostname: hadoop-worker1.docker.net
+    networks:
+      hadoopnet:
+        aliases: 
+          - hadoop-worker1.docker.net
+    depends_on:
+      - kdc-server
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.TAG==worker-1
+
+  hadoop-worker2:
+    image: 192.168.1.119:5000/hadoop-worker
+    build:
+      context: ./..
+      target: hadoop-worker
+    volumes:
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+      - ~/Data/Worker2:/usr/local/hadoop/data/dataNode
+    container_name: hadoop-worker2
+    hostname: hadoop-worker2.docker.net
+    networks:
+      hadoopnet:
+        aliases: 
+          - hadoop-worker2.docker.net
+    depends_on:
+      - kdc-server
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.TAG==worker-1
+
+  hadoop-rmanager:
+    image: 192.168.1.119:5000/hadoop-rmanager
+    build:
+      context: ./..
+      target: hadoop-rmanager
+    volumes:
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+    container_name: hadoop-rmanager
+    hostname: hadoop-rmanager.docker.net
+    networks:
+      hadoopnet:
+        aliases: 
+          - hadoop-rmanager.docker.net
+    depends_on:
+      - kdc-server
+      - hadoop-master
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.TAG==worker-1
+
+  hadoop-history:
+    image: 192.168.1.119:5000/hadoop-history
+    build:
+      context: ./..
+      target: hadoop-history
+    volumes:
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+    container_name: hadoop-history
+    hostname: hadoop-history.docker.net
+    networks:
+      hadoopnet:
+        aliases: 
+          - hadoop-history.docker.net
+    depends_on:
+      - hadoop-rmanager
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.TAG==worker-1
+  
+  hadoop-client:
+    image: 192.168.1.119:5000/hadoop-client
+    build:
+      context: ./..
+      target: hadoop-client
+    environment:
+      - DISPLAY=$DISPLAY
+    volumes:
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+    container_name: hadoop-client
+    hostname: hadoop-client.docker.net
+    networks:
+      hadoopnet:
+        aliases: 
+          - hadoop-client.docker.net
+    depends_on:
+      - kdc-server
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.TAG==manager
 
 volumes:
   CA_Vol:
