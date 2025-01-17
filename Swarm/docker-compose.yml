@@ -1,0 +1,67 @@
+# 192.168.1.119:5000 - docker egistry port
+# 192.168.1.119:/share/Data - nfs server of Data directory
+services:
+  ldap-server:
+    image: 192.168.1.119:5000/ldap_server
+    build:
+      context: ./..
+      target: ldap-server
+    volumes:
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+    container_name: ldap-server
+    hostname: ldap-server.docker.net
+    networks:
+      hadoopnet:
+        aliases: 
+          - ldap-server.docker.net
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.TAG==manager
+
+  kdc-server:
+    image: 192.168.1.119:5000/kdc_server
+    build:
+      context: ./..
+      target: kdc-server
+    volumes:
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+    container_name: kdc-server
+    hostname: kdc-server.docker.net
+    networks:
+      hadoopnet:
+        aliases: 
+          - kdc-server.docker.net
+    depends_on:
+      - ldap-server
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.TAG==worker-1
+
+volumes:
+  CA_Vol:
+    driver_opts:
+      type: "nfs"
+      o: "addr=192.168.1.119,rw"
+      device: "192.168.1.119:/share/Data/CA"
+  Sync_Vol:
+    driver_opts:
+      type: "nfs"
+      o: "addr=192.168.1.119,rw"
+      device: "192.168.1.119:/share/Data/Sync"
+  KDC_Vol:
+    driver_opts:
+      type: "nfs"
+      o: "addr=192.168.1.119,rw"
+      device: "192.168.1.119:/share/Data/KDC"  
+
+networks:
+  hadoopnet:
+    driver: overlay
+    attachable: true
