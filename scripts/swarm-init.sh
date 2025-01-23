@@ -14,6 +14,12 @@ apt install -y nfs-kernel-server
 # # on clients: 
 # sudo apt install nfs-common
 mkdir /share
+# rm -r /share/Data
+# mkdir -p /share/Data/CA
+# mkdir -p /share/Data/KDC
+# mkdir -p /share/Data/Sync
+# mkdir -p /share/Data/KnoxPK
+
 # ln -s /home/user/Projects/Hadoop-in-Docker/Data /share
 # Grant full access to all users: 
 echo "/share *(rw,async,no_subtree_check,no_root_squash)">>/etc/exports

@@ -71,7 +71,7 @@
 
 # By default the start script uses "localhost"; override the hostname here
 # for production SolrCloud environments to control the hostname exposed to cluster state
-SOLR_HOST="hadoop-solr.docker.net"
+SOLR_HOST="hadoop-solr.hadoopnet"
 
 # By default Solr will try to connect to Zookeeper with 30 seconds in timeout; override the timeout if needed
 #SOLR_WAIT_FOR_ZK="30"
@@ -175,9 +175,9 @@ SOLR_SSL_CHECK_PEER_NAME=false
 # https://solr.apache.org/guide/8_4/rule-based-authorization-plugin.html
 # https://issues.apache.org/jira/browse/SOLR-11981
 SOLR_JAAS_FILE=/usr/local/solr/conf/solr_jaas.conf
-KERBEROS_REALM="DOCKER.NET"
+KERBEROS_REALM="HADOOPNET"
 SOLR_KEYTAB=/etc/security/keytabs/ranger.keytab
-SOLR_KERB_PRINCIPAL=HTTP/hadoop-solr.docker.net@DOCKER.NET
+SOLR_KERB_PRINCIPAL=HTTP/hadoop-solr.hadoopnet@HADOOPNET
 SOLR_KERB_KEYTAB=/etc/security/keytabs/ranger.keytab
 # SOLR_AUTHENTICATION_CLIENT_CONFIGURER="org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer"
 
@@ -191,7 +191,7 @@ SOLR_AUTHENTICATION_OPTS=" -Djava.security.auth.login.config=$SOLR_JAAS_FILE \
                             -Dsolr.kerberos.cookie.portaware=true \
                             -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} \
                             -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} \
-                            -Dsolr.kerberos.name.rules=RULE:[2:\$1\/\$2@\$0](.*\/.*@DOCKER\.NET)s/.*/rangeradmin/"
+                            -Dsolr.kerberos.name.rules=RULE:[2:\$1\/\$2@\$0](.*\/.*@HADOOPNET)s/.*/rangeradmin/"
                             
 # -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin \
                             

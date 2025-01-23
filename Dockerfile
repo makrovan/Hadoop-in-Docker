@@ -126,6 +126,7 @@ ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && init_hadoop_di
 FROM ubuntu AS hadoop-solr
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update -y
+RUN apt upgrade -y
 RUN apt install -y openjdk-11-jdk 
 RUN apt install -y krb5-user
 RUN apt install -y ca-certificates
@@ -152,16 +153,19 @@ ENV PATH=$PATH:$JAVA_HOME/bin
 ENV PATH="$PATH:/opt/bin/"
 ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && \
                                 su -c '/usr/local/solr/bin/solr start' solr && \
-                                su -c 'kinit -k -t /etc/security/keytabs/ranger.keytab rangeradmin/hadoop-ranger.docker.net@DOCKER.NET' solr && \
+                                su -c 'kinit -k -t /etc/security/keytabs/ranger.keytab rangeradmin/hadoop-ranger.hadoopnet@HADOOPNET' solr && \
                                 su -c '/usr/local/solr/bin/solr create_core -c ranger_audits -d /tmp/solr/schema' solr && \
                                 su -c 'kdestroy' solr && \
                                 tail -f /usr/local/solr/server/logs/solr.log" ]
+
+FROM postgres AS hadoop-postgres
 
 # Ranger-admin with ranger-usersync
 FROM ubuntu AS hadoop-ranger
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update -y
-RUN apt install -y openjdk-8-jdk 
+RUN apt upgrade -y
+RUN apt install -y openjdk-11-jdk 
 RUN apt install -y krb5-user
 RUN apt install -y ca-certificates
 RUN apt install -y libpostgresql-jdbc-java 
@@ -181,34 +185,35 @@ COPY ./Data/Ranger_distrib/ranger/target/ranger-2.5.1-SNAPSHOT-admin.tar.gz /usr
 COPY ./Data/Ranger_distrib/ranger/target/ranger-2.5.1-SNAPSHOT-usersync.tar.gz /usr/local/
 COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
 COPY ./Config/Hadoop/http-signature.secret /etc/http-signature.secret
-# COPY --chmod=777 ./scripts/java8-sec-fix.sh /opt/bin/java_fix
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+# COPY --chmod=777 ./scripts/java11-sec-fix.sh /opt/bin/java_fix
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH=$PATH:$JAVA_HOME/bin
 ENV PATH="$PATH:/opt/bin/"
 ENV HADOOP_HOME=/usr/local/hadoop
 ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && setup && mywait" ]
-                            # && tail -f /var/log/ranger/usersync/usersync-hadoop-ranger.docker.net-.log" ]
+                            # && tail -f /var/log/ranger/usersync/usersync-hadoop-ranger.hadoopnet-.log" ]
                             # && sleep infinity" ]
 
 # apache knox
 FROM ubuntu AS hadoop-knox
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update -y
+RUN apt upgrade -y
 RUN apt install -y openjdk-11-jdk 
 RUN apt install -y krb5-user
 RUN apt install -y ca-certificates
 RUN apt install -y unzip
 RUN apt install -y xmlstarlet
 RUN apt install -y curl
-RUN addgroup knox
-RUN adduser --ingroup knox --disabled-password --gecos "" knox
+RUN addgroup hadoop
+RUN adduser --ingroup hadoop --disabled-password --gecos "" knox
 # ADD https://dlcdn.apache.org/knox/2.0.0/knox-2.0.0.zip /usr/local
 COPY ./Data/Distrib/knox-2.0.0.zip /usr/local
 RUN unzip /usr/local/knox-2.0.0.zip -d /usr/local
 RUN ln -s /usr/local/knox-2.0.0 /usr/local/knox
 COPY ./Config/Knox/docker-proxy.xml /usr/local/knox/conf/topologies
 # COPY ./Config/Knox/ranger-proxy.xml /usr/local/knox/conf/topologies
-RUN chown knox:knox -R /usr/local/knox/
+RUN chown knox:hadoop -R /usr/local/knox/
 COPY ./Config/Kerberos/krb5.conf /etc/krb5.conf
 COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
 COPY ./Config/Hadoop/http-signature.secret /etc/http-signature.secret
@@ -226,7 +231,8 @@ ENV PATH=$PATH:$JAVA_HOME/bin
 ENV HADOOP_HOME=/usr/local/hadoop
 ENV PATH="$PATH:/opt/bin/"
 ENV GATEWAY_HOME=/usr/local/knox
-ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && get_pk && kdc_waiting && setup && ranger_init && \
+ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && get_pk && kdc_waiting && setup && \
+                                # ranger_init && \
                                 su -c '/usr/local/knox/bin/gateway.sh start' knox && \
                                 tail -f /usr/local/knox/logs/gateway.log " ]
                                 # mywait " ]

@@ -39,7 +39,7 @@
 	</property>
 	<property>
 		<name>dfs.namenode.kerberos.principal</name>
-		<value>nn/_HOST@DOCKER.NET</value>
+		<value>nn/_HOST@HADOOPNET</value>
 	</property>
 	<property>
 		<name>dfs.namenode.keytab.file</name>
@@ -47,11 +47,11 @@
 	</property>
 	<property>
 		<name>dfs.namenode.kerberos.internal.spnego.principal</name>
-		<value>HTTP/_HOST@DOCKER.NET</value>
+		<value>HTTP/_HOST@HADOOPNET</value>
 	</property>
     <property>
         <name>dfs.web.authentication.kerberos.principal</name>
-        <value>HTTP/_HOST@DOCKER.NET</value>
+        <value>HTTP/_HOST@HADOOPNET</value>
     </property> 
 	<property>
 		<name>dfs.web.authentication.kerberos.keytab</name>
@@ -79,7 +79,7 @@
     </property> 
 	<property>
 		<name>dfs.datanode.kerberos.principal</name>
-		<value>dn/_HOST@DOCKER.NET</value>
+		<value>dn/_HOST@HADOOPNET</value>
 	</property>
 	<property>
 		<name>dfs.datanode.keytab.file</name>
@@ -100,10 +100,10 @@
     </property>
     <property>
         <name>dfs.namenode.rpc-address</name>
-        <value>hadoop-master.docker.net:8020</value>
+        <value>hadoop-master.hadoopnet:8020</value>
     </property>
     <property>
         <name>dfs.https.namenode.https-address</name>
-        <value>hadoop-knox.docker.net:9871</value>
+        <value>hadoop-knox.hadoopnet:9871</value>
     </property>
 </configuration>

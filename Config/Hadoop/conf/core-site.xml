@@ -21,7 +21,7 @@
 <!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/ClusterSetup.html -->
 	<property>
 		<name>fs.defaultFS</name>
-		<value>hdfs://hadoop-master.docker.net:8020</value>
+		<value>hdfs://hadoop-master.hadoopnet:8020</value>
 	</property>
 	<property>
 		<name>hadoop.security.authentication</name>
@@ -36,9 +36,9 @@
         <property>
                 <name>hadoop.security.auth_to_local</name>
                 <value>
-                        RULE:[2:$1/$2@$0]([ndj]n/.*@DOCKER\.NET)s/.*/hdfs/
-                        RULE:[2:$1/$2@$0]([rn]m/.*@DOCKER\.NET)s/.*/yarn/
-                        RULE:[2:$1/$2@$0](jhs/.*@DOCKER\.NET)s/.*/mapred/
+                        RULE:[2:$1/$2@$0]([ndj]n/.*@HADOOPNET)s/.*/hdfs/
+                        RULE:[2:$1/$2@$0]([rn]m/.*@HADOOPNET)s/.*/yarn/
+                        RULE:[2:$1/$2@$0](jhs/.*@HADOOPNET)s/.*/mapred/
                         DEFAULT
                 </value>
         </property>
@@ -66,7 +66,7 @@
         </property>
         <property>
                 <name>hadoop.http.authentication.cookie.domain</name>
-                <value>docker.net</value>
+                <value>hadoopnet</value>
         </property>
         <property>
                 <name>hadoop.http.authentication.cookie.persistent</name>
@@ -78,7 +78,7 @@
         </property>
         <property>
                 <name>hadoop.http.authentication.kerberos.principal</name>
-                <value>HTTP/_HOST@DOCKER.NET</value>
+                <value>HTTP/_HOST@HADOOPNET</value>
         </property>
         <property>
                 <name>hadoop.http.authentication.kerberos.keytab</name>

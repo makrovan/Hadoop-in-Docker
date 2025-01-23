@@ -1,250 +1,351 @@
+# 192.168.1.119:5000 - docker registry
+# 192.168.1.119:/share/Data - nfs server with :/share/Data/(CA/KDC/Sync)
 services:
   ldap-server:
+    image: 192.168.1.119:5000/ldap_server
     build:
       target: ldap-server
     volumes:
-      - ./Data/CA:/etc/CA
-      - ./Data/Sync:/etc/sync
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
     container_name: ldap-server
-    hostname: ldap-server.docker.net
+    hostname: ldap-server.hadoopnet
     networks:
-      docker.net:
-        ipv4_address: 192.168.9.31
-    extra_hosts: &hosts
-      ldap-server.docker.net: 192.168.9.31
-      kdc-server.docker.net: 192.168.9.2
-      hadoop-master.docker.net: 192.168.9.10
-      hadoop-worker1.docker.net: 192.168.9.11
-      hadoop-worker2.docker.net: 192.168.9.12
-      hadoop-rmanager.docker.net: 192.168.9.13
-      hadoop-history.docker.net: 192.168.9.15
-      hadoop-solr.docker.net: 192.168.9.16
-      hadoop-postgres.docker.net: 192.168.9.17
-      hadoop-ranger.docker.net: 192.168.9.18
-      hadoop-knox.docker.net: 192.168.9.19
-      hadoop-client.docker.net: 192.168.9.100
-    
+      - hadoopnet
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==manager
+
   kdc-server:
+    image: 192.168.1.119:5000/kdc_server
     build:
       target: kdc-server
     volumes:
-      - ./Data/Sync:/etc/sync
-      - ./Data/CA:/etc/CA
-      - ./Data/KDC:/etc/security/
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
     container_name: kdc-server
-    hostname: kdc-server.docker.net
+    hostname: kdc-server.hadoopnet
     networks:
-      docker.net:
-        ipv4_address: 192.168.9.2
-    extra_hosts: *hosts
+      - hadoopnet
     depends_on:
       - ldap-server
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==manager
 
   hadoop-master:
-    build: 
+    image: 192.168.1.119:5000/hadoop-master
+    build:
       target: hadoop-master
-    container_name: hadoop-master
     volumes:
-      - ./Data/CA:/etc/CA
-      - ./Data/Sync:/etc/sync
-      - ./Data/KDC:/etc/security
-      - ./Data/NameNode:/usr/local/hadoop/data/nameNode
-    hostname: hadoop-master.docker.net
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+      - ~/Data/NameNode:/usr/local/hadoop/data/nameNode
+    container_name: hadoop-master
+    hostname: hadoop-master.hadoopnet
     networks:
-      docker.net:
-        ipv4_address: 192.168.9.10
-    extra_hosts: *hosts
+      - hadoopnet
     depends_on:
       - kdc-server
       - hadoop-worker1
       - hadoop-worker2
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==worker-1
 
   hadoop-worker1:
+    image: 192.168.1.119:5000/hadoop-worker
     build:
       target: hadoop-worker
-    container_name: hadoop-worker1
     volumes:
-      - ./Data/CA:/etc/CA
-      - ./Data/Sync:/etc/sync
-      - ./Data/KDC:/etc/security
-      - ./Data/Worker1:/usr/local/hadoop/data/dataNode
-    hostname: hadoop-worker1.docker.net
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+      - ~/Data/Worker1:/usr/local/hadoop/data/dataNode
+    container_name: hadoop-worker1
+    hostname: hadoop-worker1.hadoopnet
     networks:
-      docker.net:
-        ipv4_address: 192.168.9.11
-    extra_hosts: *hosts
+      - hadoopnet
     depends_on:
       - kdc-server
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==worker-1
 
   hadoop-worker2:
-    build: 
+    image: 192.168.1.119:5000/hadoop-worker
+    build:
       target: hadoop-worker
-    container_name: hadoop-worker2
     volumes:
-      - ./Data/CA:/etc/CA
-      - ./Data/Sync:/etc/sync
-      - ./Data/KDC:/etc/security
-      - ./Data/Worker2:/usr/local/hadoop/data/dataNode
-    hostname: hadoop-worker2.docker.net
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+      - ~/Data/Worker2:/usr/local/hadoop/data/dataNode
+    container_name: hadoop-worker2
+    hostname: hadoop-worker2.hadoopnet
     networks:
-      docker.net:
-        ipv4_address: 192.168.9.12
-    extra_hosts: *hosts
+      - hadoopnet
     depends_on:
       - kdc-server
-        
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==worker-1
+
   hadoop-rmanager:
-    build: 
+    image: 192.168.1.119:5000/hadoop-rmanager
+    build:
       target: hadoop-rmanager
-    container_name: hadoop-rmanager
     volumes:
-      - ./Data/CA:/etc/CA
-      - ./Data/Sync:/etc/sync
-      - ./Data/KDC:/etc/security
-      # - ./Data/Ranger_distrib/ranger/target:/ranger/target
-    hostname: hadoop-rmanager.docker.net
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+    container_name: hadoop-rmanager
+    hostname: hadoop-rmanager.hadoopnet
     networks:
-      docker.net:
-        ipv4_address: 192.168.9.13
-    extra_hosts: *hosts
+      - hadoopnet
     depends_on:
       - kdc-server
       - hadoop-master
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==worker-1
 
   hadoop-history:
-    build: 
+    image: 192.168.1.119:5000/hadoop-history
+    build:
       target: hadoop-history
-    container_name: hadoop-history
     volumes:
-      - ./Data/CA:/etc/CA
-      - ./Data/Sync:/etc/sync
-      - ./Data/KDC:/etc/security
-    hostname: hadoop-history.docker.net
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+    container_name: hadoop-history
+    hostname: hadoop-history.hadoopnet
     networks:
-      docker.net:
-        ipv4_address: 192.168.9.15
-    extra_hosts: *hosts
+      - hadoopnet
     depends_on:
       - hadoop-rmanager
-  
-  hadoop-client:
-    build:
-      target: hadoop-client
-    container_name: hadoop-client
-    hostname: hadoop-client.docker.net
-    environment:
-      - DISPLAY=$DISPLAY
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:ro
-      - ./Data/CA:/etc/CA
-      - ./Data/Sync:/etc/sync
-      - ./Data/KDC:/etc/security
-    networks:
-      docker.net:
-        ipv4_address: 192.168.9.100
-    extra_hosts: *hosts
-    depends_on:
-      - kdc-server
-    
-  ranger-distrib:
-    build:
-      target: ranger-distrib
-    container_name: ranger-distrib
-    hostname: ranger-distrib.docker.net
-    volumes:
-      - ./Data/Ranger_distrib/ranger:/ranger
-      - ./Data/Ranger_distrib/.m2:/.m2
-      
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==worker-1
+
   hadoop-postgres:
-    image: postgres
-    container_name: hadoop-postgres
-    hostname: hadoop-postgres.docker.net
-    user: postgres
-    environment:
-      - POSTGRES_PASSWORD=postgres
+    image: 192.168.1.119:5000/hadoop-postgres
+    build:
+      target: hadoop-postgres
+    # image: postgres
     volumes:
-      - ./Data/CA:/etc/CA
-      - ./Data/Postgres:/var/lib/postgresql/data
+      - CA_Vol:/etc/CA
+      # mkdir -p ~/Data/Postgres
+      # chown 999:999 -R ~/Data/Postgres
+      - ~/Data/Postgres:/var/lib/postgresql/data
       # https://hub.docker.com/_/postgres Initialization scripts
       - ./scripts/postgres/init-ranger-db.sql:/docker-entrypoint-initdb.d/init-db.sql
       - ./scripts/postgres/log-setting.sh:/docker-entrypoint-initdb.d/log-setting.sh
       - ./scripts/postgres/create-ssl-key.sh:/docker-entrypoint-initdb.d/init-ssl.sh
+    container_name: hadoop-postgres
+    hostname: hadoop-postgres.hadoopnet
     networks:
-      docker.net:
-        ipv4_address: 192.168.9.17
-    extra_hosts: *hosts
+      - hadoopnet
+    user: postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==manager
 
   hadoop-solr:
-    build: 
-        target: hadoop-solr
-    container_name: hadoop-solr
-    hostname: hadoop-solr.docker.net
+    image: 192.168.1.119:5000/hadoop-solr
+    build:
+      target: hadoop-solr
     volumes:
-      - ./Data/CA:/etc/CA
-      - ./Data/Sync:/etc/sync
-      - ./Data/KDC:/etc/security
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+    container_name: hadoop-solr
+    hostname: hadoop-solr.hadoopnet
     networks:
-      docker.net:
-        ipv4_address: 192.168.9.16
-    extra_hosts: *hosts
+      - hadoopnet
     depends_on:
       - kdc-server
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==manager
 
   hadoop-ranger:
-    build: 
+    image: 192.168.1.119:5000/hadoop-ranger
+    build:
       target: hadoop-ranger
-    container_name: hadoop-ranger
-    hostname: hadoop-ranger.docker.net
     volumes:
-      - ./Data/CA:/etc/CA
-      - ./Data/KnoxPK:/etc/kpk
-      - ./Data/Sync:/etc/sync
-      - ./Data/KDC:/etc/security
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+      - KnoxPK:/etc/kpk
+    container_name: hadoop-ranger
+    hostname: hadoop-ranger.hadoopnet
     networks:
-      docker.net:
-        ipv4_address: 192.168.9.18
-    extra_hosts: *hosts
+      - hadoopnet
     ports:
-      - "6182:6182"
+      - target: 6182
+        published: 6182
+        protocol: tcp
+        mode: host
     depends_on:
       - kdc-server
       - hadoop-postgres
       - hadoop-solr
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==manager
 
   hadoop-knox:
+    image: 192.168.1.119:5000/hadoop-knox
     build:
       target: hadoop-knox
-    container_name: hadoop-knox
-    hostname: hadoop-knox.docker.net
-    ports:
-      - "8443:8443"
     volumes:
-      - ./Data/Sync:/etc/sync
-      - ./Data/CA:/etc/CA
-      - ./Data/KnoxPK:/etc/kpk
-      - ./Data/KDC:/etc/security/
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+      - KnoxPK:/etc/kpk
+    container_name: hadoop-knox
+    hostname: hadoop-knox.hadoopnet
     networks:
-      docker.net:
-        ipv4_address: 192.168.9.19
-    extra_hosts: *hosts
+      - hadoopnet
+    ports:
+      - target: 8443
+        published: 8443
+        protocol: tcp
+        mode: host
     depends_on:
       - kdc-server
- 
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==manager
+
+  hadoop-client:
+    image: 192.168.1.119:5000/hadoop-client
+    build:
+      target: hadoop-client
+    environment:
+      - DISPLAY=$DISPLAY
+    volumes:
+      - CA_Vol:/etc/CA
+      - Sync_Vol:/etc/sync
+      - KDC_Vol:/etc/security/
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+    container_name: hadoop-client
+    hostname: hadoop-client.hadoopnet
+    networks:
+      - hadoopnet
+    depends_on:
+      - kdc-server
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.labels.TAG==manager
+
+  # ranger-distrib:
+  #   image: 192.168.1.119:5000/ranger-distrib
+  #   build:
+  #     target: ranger-distrib
+  #   container_name: ranger-distrib
+  #   hostname: ranger-distrib.hadoopnet
+  #   volumes:
+  #     - ./Data/Ranger_distrib/ranger:/ranger
+  #     - ./Data/Ranger_distrib/.m2:/.m2
+  #   deploy:
+  #     mode: global
+  #     restart_policy:
+  #       condition: none
+  #     endpoint_mode: dnsrr
+  #     placement:
+  #       constraints:
+  #         - node.labels.TAG==manager
+      
+volumes:
+  CA_Vol:
+    driver_opts:
+      type: "nfs"
+      o: "addr=192.168.1.119,rw"
+      device: "192.168.1.119:/share/Data/CA"
+  Sync_Vol:
+    driver_opts:
+      type: "nfs"
+      o: "addr=192.168.1.119,rw"
+      device: "192.168.1.119:/share/Data/Sync"
+  KDC_Vol:
+    driver_opts:
+      type: "nfs"
+      o: "addr=192.168.1.119,rw"
+      device: "192.168.1.119:/share/Data/KDC"
+  KnoxPK:
+    driver_opts:
+      type: "nfs"
+      o: "addr=192.168.1.119,rw"
+      device: "192.168.1.119:/share/Data/KnoxPK"
+
 networks:
-    docker.net:
-      driver: bridge
-      name: docker.net
-      enable_ipv6: false    
-      ipam:
-        driver: default
-        config:
-          - subnet: 192.168.9.0/24
-
-# xhost + ${localhost}
-
-# TODO:
-# исправить ссылки в Readme.md
-# Перейти на Docker swarm
-# настройка рейнджер-хдфс
-# настройка рейнджер-ямл
-# кнокс
+  hadoopnet:
+    driver: overlay
+    attachable: true
+    name: hadoopnet

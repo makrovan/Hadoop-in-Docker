@@ -25,11 +25,11 @@
 	</property>
 	<property>
 		<name>mapreduce.jobhistory.address</name>
-		<value>hadoop-history.docker.net</value>
+		<value>hadoop-history.hadoopnet</value>
 	</property>
 	<property>
 		<name>mapreduce.jobhistory.webapp.address</name>
-		<value>hadoop-history.docker.net</value>
+		<value>hadoop-history.hadoopnet</value>
 	</property>
 	<property>
 		<name>mapreduce.jobhistory.intermediate-done-dir</name>
@@ -47,7 +47,7 @@
 	</property>
 	<property>
 		<name>mapreduce.jobhistory.principal</name>
-		<value>jhs/_HOST@DOCKER.NET</value>
+		<value>jhs/_HOST@HADOOPNET</value>
 	</property>
     <property>
             <name>mapreduce.jobhistory.http.policy</name>

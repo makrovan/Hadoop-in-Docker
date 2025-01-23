@@ -20,12 +20,12 @@ xmlstarlet ed -L -s "//configuration" -t elem -n "property" -s "//property[last(
 xmlstarlet ed -L -s "//configuration" -t elem -n "property" -s "//property[last()]" -t elem -n "name" -v "xasecure.audit.jaas.Client.loginModuleControlFlag" -s "//property[last()]" -t elem -n "value" -v "required" /usr/local/knox/conf/ranger-knox-audit.xml
 xmlstarlet ed -L -s "//configuration" -t elem -n "property" -s "//property[last()]" -t elem -n "name" -v "xasecure.audit.jaas.Client.loginModuleName" -s "//property[last()]" -t elem -n "value" -v "com.sun.security.auth.module.Krb5LoginModule" /usr/local/knox/conf/ranger-knox-audit.xml
 xmlstarlet ed -L -s "//configuration" -t elem -n "property" -s "//property[last()]" -t elem -n "name" -v "xasecure.audit.jaas.Client.option.keyTab" -s "//property[last()]" -t elem -n "value" -v "/etc/security/keytabs/ranger.keytab" /usr/local/knox/conf/ranger-knox-audit.xml
-xmlstarlet ed -L -s "//configuration" -t elem -n "property" -s "//property[last()]" -t elem -n "name" -v "xasecure.audit.jaas.Client.option.principal" -s "//property[last()]" -t elem -n "value" -v "rangeradmin/hadoop-ranger.docker.net@DOCKER.NET" /usr/local/knox/conf/ranger-knox-audit.xml
+xmlstarlet ed -L -s "//configuration" -t elem -n "property" -s "//property[last()]" -t elem -n "name" -v "xasecure.audit.jaas.Client.option.principal" -s "//property[last()]" -t elem -n "value" -v "rangeradmin/hadoop-ranger.hadoopnet@HADOOPNET" /usr/local/knox/conf/ranger-knox-audit.xml
 xmlstarlet ed -L -s "//configuration" -t elem -n "property" -s "//property[last()]" -t elem -n "name" -v "xasecure.audit.jaas.Client.option.serviceName" -s "//property[last()]" -t elem -n "value" -v "solr" /usr/local/knox/conf/ranger-knox-audit.xml
 xmlstarlet ed -L -s "//configuration" -t elem -n "property" -s "//property[last()]" -t elem -n "name" -v "xasecure.audit.jaas.Client.option.storeKey" -s "//property[last()]" -t elem -n "value" -v "false" /usr/local/knox/conf/ranger-knox-audit.xml
 xmlstarlet ed -L -s "//configuration" -t elem -n "property" -s "//property[last()]" -t elem -n "name" -v "xasecure.audit.jaas.Client.option.useKeyTab" -s "//property[last()]" -t elem -n "value" -v "true" /usr/local/knox/conf/ranger-knox-audit.xml
 xmlstarlet ed -L -s "//configuration" -t elem -n "property" -s "//property[last()]" -t elem -n "name" -v "xasecure.audit.jaas.Client.option.debug" -s "//property[last()]" -t elem -n "value" -v "true" /usr/local/knox/conf/ranger-knox-audit.xml
 
 mkdir -p /var/log/knox/audit/solr/spool
-chown -R knox:knox /var/log/knox/audit/solr/spool
-chown -R knox:knox /etc/ranger/knoxdev/
+chown -R knox:hadoop /var/log/knox/audit/solr/spool
+chown -R knox:hadoop /etc/ranger/knoxdev/

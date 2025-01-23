@@ -50,51 +50,55 @@
         <provider>
             <role>hostmap</role>
             <name>static</name>
-            <enabled>false</enabled>
+            <enabled>true</enabled>
+            <param>
+                <name>localhost</name>
+                <value>hadoop-knox.hadoopnet</value>
+            </param>
         </provider>
 
     </gateway>
 
     <service>
         <role>NAMENODE</role>
-        <url>hdfs://hadoop-master.docker.net:8020</url>
+        <url>hdfs://hadoop-master.hadoopnet:8020</url>
     </service>
 
     <service>
         <role>WEBHDFS</role>
-        <url>https://hadoop-master.docker.net:9871/webhdfs</url>
+        <url>https://hadoop-master.hadoopnet:9871/webhdfs</url>
     </service>
 
     <service>
         <role>RESOURCEMANAGER</role>
-        <url>https://hadoop-rmanager.docker.net:8090/ws</url>
+        <url>https://hadoop-rmanager.hadoopnet:8090/ws</url>
     </service>
 
     <service>
         <role>HDFSUI</role>
         <!-- https://issues.apache.org/jira/browse/KNOX-1644 -->
         <version>2.7.0</version>
-        <url>https://hadoop-master.docker.net:9871</url>
+        <url>https://hadoop-master.hadoopnet:9871</url>
     </service>
 
     <service>
         <role>JOBHISTORYUI</role>
-        <url>https://hadoop-history.docker.net:19890</url>
+        <url>https://hadoop-history.hadoopnet:19890</url>
     </service>
     
     <service>
         <role>YARNUI</role>
-        <url>https://hadoop-rmanager.docker.net:8090</url>
+        <url>https://hadoop-rmanager.hadoopnet:8090</url>
     </service>
     
     <service>
         <role>RANGER</role>
-        <url>https://hadoop-ranger.docker.net:6182</url>
+        <url>https://hadoop-ranger.hadoopnet:6182</url>
     </service>
     
     <service>
         <role>RANGERUI</role>
-        <url>https://hadoop-ranger.docker.net:6182</url>
+        <url>https://hadoop-ranger.hadoopnet:6182</url>
     </service>
 
 </topology>

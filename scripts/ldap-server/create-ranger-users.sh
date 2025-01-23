@@ -3,21 +3,21 @@ set -x
 # https://ubuntu.com/server/docs/install-and-configure-ldap
 # https://docs.ezmeral.hpe.com/datafabric-customer-managed/78/Ranger/Configure_LDAP_AD_for_Ranger.html
 
-ldapadd -x -D cn=admin,dc=docker,dc=net -H ldaps:/// -w hadoop <<EOF
-dn: ou=users,dc=docker,dc=net
+ldapadd -x -D cn=admin,dc=hadoopnet -H ldaps:/// -w hadoop <<EOF
+dn: ou=users,dc=hadoopnet
 objectClass: organizationalUnit
 ou: users
 
-dn: ou=groups,dc=docker,dc=net
+dn: ou=groups,dc=hadoopnet
 objectClass: organizationalUnit
 ou: groups
 
-dn: cn=posixgroup_a,ou=groups,dc=docker,dc=net
+dn: cn=posixgroup_a,ou=groups,dc=hadoopnet
 objectClass: posixGroup
 cn: posixgroup_a
 gidNumber: 5001
 
-dn: uid=ldapuser,ou=users,dc=docker,dc=net
+dn: uid=ldapuser,ou=users,dc=hadoopnet
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: shadowAccount
@@ -34,7 +34,7 @@ gecos: Ldap User
 loginShell: /bin/bash
 homeDirectory: /home/ldapuser
 
-dn: uid=ldapuser1,ou=users,dc=docker,dc=net
+dn: uid=ldapuser1,ou=users,dc=hadoopnet
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: shadowAccount
@@ -51,7 +51,7 @@ gecos: Ldap User1
 loginShell: /bin/bash
 homeDirectory: /home/ldapuser1
 
-dn: uid=ldapuser2,ou=users,dc=docker,dc=net
+dn: uid=ldapuser2,ou=users,dc=hadoopnet
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: shadowAccount
@@ -68,7 +68,7 @@ gecos: Ldap User2
 loginShell: /bin/bash
 homeDirectory: /home/ldapuser2
 
-dn: uid=ldapuser3,ou=users,dc=docker,dc=net
+dn: uid=ldapuser3,ou=users,dc=hadoopnet
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: shadowAccount
@@ -85,7 +85,7 @@ gecos: Ldap User3
 loginShell: /bin/bash
 homeDirectory: /home/ldapuser3
 
-dn: uid=ldapuser4,ou=users,dc=docker,dc=net
+dn: uid=ldapuser4,ou=users,dc=hadoopnet
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: shadowAccount
@@ -102,33 +102,33 @@ gecos: Ldap User4
 loginShell: /bin/bash
 homeDirectory: /home/ldapuser4
 
-dn: cn=rangergroup_a,ou=groups,dc=docker,dc=net
+dn: cn=rangergroup_a,ou=groups,dc=hadoopnet
 objectClass: groupOfNames
-member: uid=ldapuser1,ou=users,dc=docker,dc=net
-member: uid=ldapuser2,ou=users,dc=docker,dc=net
+member: uid=ldapuser1,ou=users,dc=hadoopnet
+member: uid=ldapuser2,ou=users,dc=hadoopnet
 cn: rangergroup_a
 
-dn: cn=rangergroup_b,ou=groups,dc=docker,dc=net
+dn: cn=rangergroup_b,ou=groups,dc=hadoopnet
 objectClass: groupOfNames
-member: uid=ldapuser3,ou=users,dc=docker,dc=net
-member: uid=ldapuser4,ou=users,dc=docker,dc=net
+member: uid=ldapuser3,ou=users,dc=hadoopnet
+member: uid=ldapuser4,ou=users,dc=hadoopnet
 cn: rangergroup_b
 
-dn: cn=admin,ou=groups,dc=docker,dc=net
+dn: cn=admin,ou=groups,dc=hadoopnet
 objectclass: groupOfNames
 cn: admin
 description: admin group for knox
-member: uid=ldapuser,ou=users,dc=docker,dc=net
+member: uid=ldapuser,ou=users,dc=hadoopnet
 EOF
 
-ldappasswd -D 'cn=admin,dc=docker,dc=net' -H ldaps:/// -w hadoop -x "uid=ldapuser,ou=users,dc=docker,dc=net" -s "pass"
+ldappasswd -D 'cn=admin,dc=hadoopnet' -H ldaps:/// -w hadoop -x "uid=ldapuser,ou=users,dc=hadoopnet" -s "pass"
 for i in $(seq 4); do 
-    ldappasswd -D 'cn=admin,dc=docker,dc=net' -H ldaps:/// -w hadoop -x "uid=ldapuser${i},ou=users,dc=docker,dc=net" -s "pass${i}"
+    ldappasswd -D 'cn=admin,dc=hadoopnet' -H ldaps:/// -w hadoop -x "uid=ldapuser${i},ou=users,dc=hadoopnet" -s "pass${i}"
 done
 
 # echo "start testing..."
-# for i in $(seq 4); do ldapwhoami -x -D "uid=ldapuser${i},ou=users,dc=docker,dc=net" -H ldaps:/// -w "pass${i}"; done
-# ldapsearch -x -D 'cn=admin,dc=docker,dc=net' -H ldaps:/// -w hadoop -b 'ou=users,dc=docker,dc=net' -LLL
+# for i in $(seq 4); do ldapwhoami -x -D "uid=ldapuser${i},ou=users,dc=hadoopnet" -H ldaps:/// -w "pass${i}"; done
+# ldapsearch -x -D 'cn=admin,dc=hadoopnet' -H ldaps:/// -w hadoop -b 'ou=users,dc=hadoopnet' -LLL
 # echo "stop testing."
 
 # https://ubuntu.com/server/docs/how-to-set-up-kerberos-with-openldap-backend
@@ -139,9 +139,9 @@ slapd -h "ldapi://"
 ldapmodify -Q -Y EXTERNAL -H ldapi:/// <<EOF
 dn: olcDatabase={1}mdb,cn=config
 add: olcAccess
-olcAccess: {4}to dn.subtree="ou=users,dc=docker,dc=net"
-  by dn.exact="uid=kdc-service,dc=docker,dc=net" read
-  by dn.exact="uid=kadmin-service,dc=docker,dc=net" write
+olcAccess: {4}to dn.subtree="ou=users,dc=hadoopnet"
+  by dn.exact="uid=kdc-service,dc=hadoopnet" read
+  by dn.exact="uid=kadmin-service,dc=hadoopnet" write
   by * break
 EOF
 

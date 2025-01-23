@@ -1,12 +1,12 @@
 #!/bin/bash
 set -x
 
-kinit -k -t /etc/security/keytabs/rm.service.keytab rm/hadoop-proxy.docker.net@DOCKER.NET
+kinit -k -t /etc/security/keytabs/rm.service.keytab rm/hadoop-proxy.hadoopnet@HADOOPNET
 while [ $? -ne 0 ]
 do
     sleep 5
     echo "kinit error..."
-    kinit -k -t /etc/security/keytabs/rm.service.keytab rm/hadoop-proxy.docker.net@DOCKER.NET
+    kinit -k -t /etc/security/keytabs/rm.service.keytab rm/hadoop-proxy.hadoopnet@HADOOPNET
 done
 
 printf "\n!!!Testing directory to yarn-history...\n\n"

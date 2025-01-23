@@ -18,13 +18,13 @@
 <!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/ClusterSetup.html -->
 	<property>
 		<name>yarn.resourcemanager.hostname</name>
-		<value>hadoop-rmanager.docker.net</value>
+		<value>hadoop-rmanager.hadoopnet</value>
 	</property>
 <!-- Hadoop in Secure Mode -->
 <!-- https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SecureMode.html -->
 	<property>
 		<name>yarn.resourcemanager.principal</name>
-		<value>rm/_HOST@DOCKER.NET</value>
+		<value>rm/_HOST@HADOOPNET</value>
 	</property>
 	<property>
 		<name>yarn.resourcemanager.keytab</name>
@@ -32,11 +32,11 @@
 	</property>
 	<property>
 		<name>yarn.resourcemanager.webapp.https.address</name>
-		<value>hadoop-rmanager.docker.net:8090</value>
+		<value>hadoop-rmanager.hadoopnet:8090</value>
 	</property>
 	<property>
 		<name>yarn.nodemanager.principal</name>
-		<value>nm/_HOST@DOCKER.NET</value>
+		<value>nm/_HOST@HADOOPNET</value>
 	</property>
 	<property>
 		<name>yarn.nodemanager.keytab</name>

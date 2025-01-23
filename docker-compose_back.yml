@@ -1,0 +1,250 @@
+services:
+  ldap-server:
+    build:
+      target: ldap-server
+    volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+    container_name: ldap-server
+    hostname: ldap-server.hadoopnet
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.31
+    extra_hosts: &hosts
+      ldap-server.hadoopnet: 192.168.9.31
+      kdc-server.hadoopnet: 192.168.9.2
+      hadoop-master.hadoopnet: 192.168.9.10
+      hadoop-worker1.hadoopnet: 192.168.9.11
+      hadoop-worker2.hadoopnet: 192.168.9.12
+      hadoop-rmanager.hadoopnet: 192.168.9.13
+      hadoop-history.hadoopnet: 192.168.9.15
+      hadoop-solr.hadoopnet: 192.168.9.16
+      hadoop-postgres.hadoopnet: 192.168.9.17
+      hadoop-ranger.hadoopnet: 192.168.9.18
+      hadoop-knox.hadoopnet: 192.168.9.19
+      hadoop-client.hadoopnet: 192.168.9.100
+    
+  kdc-server:
+    build:
+      target: kdc-server
+    volumes:
+      - ./Data/Sync:/etc/sync
+      - ./Data/CA:/etc/CA
+      - ./Data/KDC:/etc/security/
+    container_name: kdc-server
+    hostname: kdc-server.hadoopnet
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.2
+    extra_hosts: *hosts
+    depends_on:
+      - ldap-server
+
+  hadoop-master:
+    build: 
+      target: hadoop-master
+    container_name: hadoop-master
+    volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
+      - ./Data/NameNode:/usr/local/hadoop/data/nameNode
+    hostname: hadoop-master.hadoopnet
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.10
+    extra_hosts: *hosts
+    depends_on:
+      - kdc-server
+      - hadoop-worker1
+      - hadoop-worker2
+
+  hadoop-worker1:
+    build:
+      target: hadoop-worker
+    container_name: hadoop-worker1
+    volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
+      - ./Data/Worker1:/usr/local/hadoop/data/dataNode
+    hostname: hadoop-worker1.hadoopnet
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.11
+    extra_hosts: *hosts
+    depends_on:
+      - kdc-server
+
+  hadoop-worker2:
+    build: 
+      target: hadoop-worker
+    container_name: hadoop-worker2
+    volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
+      - ./Data/Worker2:/usr/local/hadoop/data/dataNode
+    hostname: hadoop-worker2.hadoopnet
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.12
+    extra_hosts: *hosts
+    depends_on:
+      - kdc-server
+        
+  hadoop-rmanager:
+    build: 
+      target: hadoop-rmanager
+    container_name: hadoop-rmanager
+    volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
+      # - ./Data/Ranger_distrib/ranger/target:/ranger/target
+    hostname: hadoop-rmanager.hadoopnet
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.13
+    extra_hosts: *hosts
+    depends_on:
+      - kdc-server
+      - hadoop-master
+
+  hadoop-history:
+    build: 
+      target: hadoop-history
+    container_name: hadoop-history
+    volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
+    hostname: hadoop-history.hadoopnet
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.15
+    extra_hosts: *hosts
+    depends_on:
+      - hadoop-rmanager
+  
+  hadoop-client:
+    build:
+      target: hadoop-client
+    container_name: hadoop-client
+    hostname: hadoop-client.hadoopnet
+    environment:
+      - DISPLAY=$DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.100
+    extra_hosts: *hosts
+    depends_on:
+      - kdc-server
+    
+  ranger-distrib:
+    build:
+      target: ranger-distrib
+    container_name: ranger-distrib
+    hostname: ranger-distrib.hadoopnet
+    volumes:
+      - ./Data/Ranger_distrib/ranger:/ranger
+      - ./Data/Ranger_distrib/.m2:/.m2
+      
+  hadoop-postgres:
+    image: postgres
+    container_name: hadoop-postgres
+    hostname: hadoop-postgres.hadoopnet
+    user: postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/Postgres:/var/lib/postgresql/data
+      # https://hub.docker.com/_/postgres Initialization scripts
+      - ./scripts/postgres/init-ranger-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./scripts/postgres/log-setting.sh:/docker-entrypoint-initdb.d/log-setting.sh
+      - ./scripts/postgres/create-ssl-key.sh:/docker-entrypoint-initdb.d/init-ssl.sh
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.17
+    extra_hosts: *hosts
+
+  hadoop-solr:
+    build: 
+        target: hadoop-solr
+    container_name: hadoop-solr
+    hostname: hadoop-solr.hadoopnet
+    volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.16
+    extra_hosts: *hosts
+    depends_on:
+      - kdc-server
+
+  hadoop-ranger:
+    build: 
+      target: hadoop-ranger
+    container_name: hadoop-ranger
+    hostname: hadoop-ranger.hadoopnet
+    volumes:
+      - ./Data/CA:/etc/CA
+      - ./Data/KnoxPK:/etc/kpk
+      - ./Data/Sync:/etc/sync
+      - ./Data/KDC:/etc/security
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.18
+    extra_hosts: *hosts
+    ports:
+      - "6182:6182"
+    depends_on:
+      - kdc-server
+      - hadoop-postgres
+      - hadoop-solr
+
+  hadoop-knox:
+    build:
+      target: hadoop-knox
+    container_name: hadoop-knox
+    hostname: hadoop-knox.hadoopnet
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./Data/Sync:/etc/sync
+      - ./Data/CA:/etc/CA
+      - ./Data/KnoxPK:/etc/kpk
+      - ./Data/KDC:/etc/security/
+    networks:
+      hadoopnet:
+        ipv4_address: 192.168.9.19
+    extra_hosts: *hosts
+    depends_on:
+      - kdc-server
+ 
+networks:
+    hadoopnet:
+      driver: bridge
+      name: hadoopnet
+      enable_ipv6: false    
+      ipam:
+        driver: default
+        config:
+          - subnet: 192.168.9.0/24
+
+# xhost + ${localhost}
+
+# TODO:
+# исправить ссылки в Readme.md
+# Перейти на Docker swarm
+# настройка рейнджер-хдфс
+# настройка рейнджер-ямл
+# кнокс

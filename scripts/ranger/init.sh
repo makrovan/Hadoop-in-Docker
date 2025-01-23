@@ -41,7 +41,7 @@ cp -f /tmp/admin/install.properties .
 # enable kerberos in ranger-admin
 # xmlstarlet ed --inplace -s /configuration -t elem -n property /etc/ranger/admin/conf/core-site.xml
 # sed -i 's/<property\/>/<property><name>hadoop.security.authentication<\/name><value>kerberos<\/value><\/property>/' /etc/ranger/admin/conf/core-site.xml
-# # hadoop.security.auth_to_local in core-site.xml не работает kerberos principal преобразуется в имя пользователя путем отброса всего после "/": rangerusersync/hadoop-ranger.docker.net@DOCKER.NET -> rangerusersync
+# # hadoop.security.auth_to_local in core-site.xml не работает kerberos principal преобразуется в имя пользователя путем отброса всего после "/": rangerusersync/hadoop-ranger.hadoopnet@HADOOPNET -> rangerusersync
 # xmlstarlet ed -L /etc/ranger/admin/conf/core-site.xml
 
 
@@ -84,7 +84,7 @@ sed -i 's/<property\/>/<property><name>xasecure.audit.jaas.Client.option.service
 xmlstarlet ed --inplace -s /configuration -t elem -n property /etc/ranger/admin/conf/ranger-admin-site.xml
 sed -i 's/<property\/>/<property><name>xasecure.audit.jaas.Client.option.keyTab<\/name><value>\/etc\/security\/keytabs\/ranger.keytab<\/value><\/property>/' /etc/ranger/admin/conf/ranger-admin-site.xml
 xmlstarlet ed --inplace -s /configuration -t elem -n property /etc/ranger/admin/conf/ranger-admin-site.xml
-sed -i 's/<property\/>/<property><name>xasecure.audit.jaas.Client.option.principal<\/name><value>rangeradmin\/hadoop-ranger.docker.net@DOCKER.NET<\/value><\/property>/' /etc/ranger/admin/conf/ranger-admin-site.xml
+sed -i 's/<property\/>/<property><name>xasecure.audit.jaas.Client.option.principal<\/name><value>rangeradmin\/hadoop-ranger.hadoopnet@HADOOPNET<\/value><\/property>/' /etc/ranger/admin/conf/ranger-admin-site.xml
 xmlstarlet ed --inplace -s /configuration -t elem -n property /etc/ranger/admin/conf/ranger-admin-site.xml
 sed -i 's/<property\/>/<property><name>xasecure.audit.jaas.Client.option.debug<\/name><value>true<\/value><\/property>/' /etc/ranger/admin/conf/ranger-admin-site.xml
 xmlstarlet ed --inplace --delete "/configuration/property[name='ranger.solr.audit.user']" /etc/ranger/admin/conf/ranger-admin-site.xml

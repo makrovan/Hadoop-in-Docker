@@ -23,7 +23,7 @@ then
   # openssl genrsa -aes256 -out private/rootca.key 4096
 
   # Создаем временный файл /etc/ssl/ca.info для определения CA:
-  echo "cn = Docker Net
+  echo "cn = HadoopNet
   ca
   cert_signing_key
   expiration_days = 3650" >> /etc/ssl/ca.info
@@ -54,8 +54,8 @@ certtool --generate-privkey --bits 2048 --outfile /etc/ldap/ldap01_slapd_key.pem
 # openssl genrsa -out private/ldap-srv.example.com.key 4096
 
 # Создаем информационный файл /etc/ssl/ldap01.info
-echo "organization = Docker Net
-cn = ldap-server.docker.net
+echo "organization = HadoopNet
+cn = ldap-server.hadoopnet
 tls_www_server
 encryption_key
 signing_key
@@ -116,15 +116,15 @@ olcDbIndex: krbPrincipalName eq,pres,sub
 EOF
 
 # Let’s create LDAP entries for the Kerberos administrative entities that will contact the OpenLDAP server to perform operations:
-ldapadd -x -D cn=admin,dc=docker,dc=net -W <<EOF
-dn: uid=kdc-service,dc=docker,dc=net
+ldapadd -x -D cn=admin,dc=hadoopnet -W <<EOF
+dn: uid=kdc-service,dc=hadoopnet
 uid: kdc-service
 objectClass: account
 objectClass: simpleSecurityObject
 userPassword: {CRYPT}x
 description: Account used for the Kerberos KDC
 
-dn: uid=kadmin-service,dc=docker,dc=net
+dn: uid=kadmin-service,dc=hadoopnet
 uid: kadmin-service
 objectClass: account
 objectClass: simpleSecurityObject
@@ -134,15 +134,15 @@ EOF
 #Enter LDAP Password: hadoop
 
 # To change the password to something valid, you can now use ldappasswd:
-ldappasswd -x -D cn=admin,dc=docker,dc=net -W -S uid=kdc-service,dc=docker,dc=net 
+ldappasswd -x -D cn=admin,dc=hadoopnet -W -S uid=kdc-service,dc=hadoopnet 
 #New password: hadoop; 
 #Enter LDAP Password: hadoop
-#ldapwhoami -x -D uid=kdc-service,dc=docker,dc=net -W
+#ldapwhoami -x -D uid=kdc-service,dc=hadoopnet -W
 #Enter LDAP Password: hadoop
-ldappasswd -x -D cn=admin,dc=docker,dc=net -W -S uid=kadmin-service,dc=docker,dc=net
+ldappasswd -x -D cn=admin,dc=hadoopnet -W -S uid=kadmin-service,dc=hadoopnet
 #New password: hadoop; 
 #Enter LDAP Password: hadoop
-#ldapwhoami -x -D uid=kadmin-service,dc=docker,dc=net -W
+#ldapwhoami -x -D uid=kadmin-service,dc=hadoopnet -W
 #Enter LDAP Password: hadoop
 
 # В конце обновите списки контроля доступа (ACL):
@@ -151,15 +151,15 @@ dn: olcDatabase={1}mdb,cn=config
 add: olcAccess
 olcAccess: {2}to attrs=krbLoginFailedCount,krbprincipalname,krbprincipalkey,krbLastPwdChange,krbExtraData,objectclass
   by anonymous auth
-  by dn.exact="uid=kdc-service,dc=docker,dc=net" read
-  by dn.exact="uid=kadmin-service,dc=docker,dc=net" write
+  by dn.exact="uid=kdc-service,dc=hadoopnet" read
+  by dn.exact="uid=kadmin-service,dc=hadoopnet" write
   by self write
   by * none
 -
 add: olcAccess
-olcAccess: {3}to dn.subtree="cn=krbContainer,dc=docker,dc=net"
-  by dn.exact="uid=kdc-service,dc=docker,dc=net" read
-  by dn.exact="uid=kadmin-service,dc=docker,dc=net" write
+olcAccess: {3}to dn.subtree="cn=krbContainer,dc=hadoopnet"
+  by dn.exact="uid=kdc-service,dc=hadoopnet" read
+  by dn.exact="uid=kadmin-service,dc=hadoopnet" write
   by * none
 EOF
 #slapcat -b cn=config
