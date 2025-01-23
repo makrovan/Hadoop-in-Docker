@@ -40,11 +40,19 @@ docker node update --label-add TAG=manager $(hostname)
 echo "Enter worker-node name:"
 read WORKER_1
 docker node update --label-add TAG=worker-1 $WORKER_1
+# on manager:
+# mkdir -p ~/Data/Postgres
+# chown 999:999 -R ~/Data/Postgres 
+
+# on worker:
+# mkdir -p ~/Data/NameNode
+# mkdir -p ~/Data/Worker1
+# mkdir -p ~/Data/Worker2
+
 
 docker compose up -d
-# wait for images:
-sleep 1000
 docker compose down
+dockr compose down --volumes
 docker compose push
 
 docker stack deploy --compose-file docker-compose.yml -d=false hadoopstack
