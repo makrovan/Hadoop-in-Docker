@@ -4,7 +4,7 @@
     },
     "authorization": {
         "class": "solr.RuleBasedAuthorizationPlugin",
-        "user-role": {"rangeradmin/hadoop-ranger.docker.net@DOCKER.NET": "admin"},
+        "user-role": {"rangeradmin/hadoop-ranger.hadoopnet@HADOOPNET": "admin"},
         "permissions": [
             {"name": "all", "role": "admin"}
         ]        

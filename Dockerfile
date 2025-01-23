@@ -1,57 +1,3 @@
-# Hadoop-image с общей конфигурацией утилитами
-FROM ubuntu AS hadoop-image
-ARG DEBIAN_FRONTEND=noninteractive
-# https://stackoverflow.com/questions/24991136/docker-build-could-not-resolve-archive-ubuntu-com-apt-get-fails-to-install-a
-RUN apt update
-RUN apt install -y openjdk-11-jdk 
-RUN apt install -y krb5-user 
-RUN apt install -y ca-certificates
-WORKDIR /tmp
-# ADD https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz /tmp/
-COPY ./Data/Distrib/hadoop-3.4.0.tar.gz /tmp/
-RUN tar xzf hadoop-3.4.0.tar.gz -C /usr/local
-RUN rm hadoop-3.4.0.tar.gz
-RUN mv /usr/local/hadoop-3.4.0 /usr/local/hadoop
-RUN addgroup hadoop
-RUN adduser --ingroup hadoop --disabled-password --gecos "" hdfs
-RUN adduser --ingroup hadoop --disabled-password --gecos "" yarn
-RUN adduser --ingroup hadoop --disabled-password --gecos "" mapred
-RUN mkdir -p -m 700 /usr/local/hadoop/data/nameNode
-RUN mkdir -p -m 700 /usr/local/hadoop/data/dataNode
-RUN mkdir -p -m 775 /usr/local/hadoop/logs
-RUN mkdir -p -m 755 /tmp/hadoop-yarn/nm-local-dir
-RUN mkdir -p -m 755 /usr/local/hadoop/logs/userlogs
-RUN chown hdfs:hadoop -R /usr/local/hadoop/data/nameNode
-RUN chown hdfs:hadoop -R /usr/local/hadoop/data/dataNode
-RUN chown hdfs:hadoop -R /usr/local/hadoop/logs
-RUN chown yarn:hadoop -R /tmp/hadoop-yarn/nm-local-dir
-RUN chown yarn:hadoop -R /usr/local/hadoop/logs/userlogs
-RUN adduser --ingroup hadoop --disabled-password --gecos "" knox
-COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
-COPY ./Config/Hadoop/http-signature.secret /etc/http-signature.secret
-COPY ./Config/Hadoop/log4j.properties /usr/local/hadoop/etc/hadoop/log4j.properties
-COPY --chmod=777 ./scripts/utils/myrun_scripts.sh /opt/bin/myrun_scripts
-COPY --chmod=777 ./scripts/create-https-key.sh /opt/bin/https_key_init
-COPY --chmod=777 ./scripts/kdc-keytabs-waiting.sh /opt/bin/kdc_waiting
-COPY --chmod=777 ./scripts/utils/mywait.sh /opt/bin/mywait
-COPY ./Config/Kerberos/krb5.conf /etc/krb5kdc/krb5.conf
-# COPY --chmod=777 ./scripts/java8-sec-fix.sh /opt/bin/java_fix
-ENV KRB5_CONFIG="/etc/krb5kdc/krb5.conf"
-# https://stackoverflow.com/questions/33132768/kerberos-still-using-default-etc-krb5-conf-file-even-after-setting-krb5-config
-ENV HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.conf=/etc/krb5kdc/krb5.conf"
-ENV HADOOP_HOME="/usr/local/hadoop"
-ENV HADOOP_COMMON_HOME="$HADOOP_HOME"
-ENV HADOOP_CONF_DIR="$HADOOP_HOME/etc/hadoop"
-ENV HADOOP_HDFS_HOME="$HADOOP_HOME"
-ENV HADOOP_MAPRED_HOME="$HADOOP_HOME"
-ENV HADOOP_YARN_HOME="$HADOOP_HOME"
-ENV HADOOP_OS_TYPE="Linux"
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-ENV PATH="$PATH:/opt/bin:$HADOOP_HOME/bin:$JAVA_HOME/bin"
-# https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SecureMode.html#Troubleshooting
-ENV HADOOP_JAAS_DEBUG true
-ENV HADOOP_OPTS "$HADOOP_OPTS -Djava.net.preferIPv4Stack=true -Dsun.security.krb5.debug=true -Dsun.security.spnego.debug"
-
 # LDAP-сервер
 FROM ubuntu AS ldap-server
 ARG DEBIAN_FRONTEND=noninteractive
@@ -95,14 +41,59 @@ ENTRYPOINT [ "/bin/bash", "-c", "rm -f /etc/sync/krb5kdc_started && \
                                 tail -f /var/log/krb5kdc.log" ]
                                 # mywait krb5kdc kadmind" ]
 
+# Hadoop-image с общей конфигурацией утилитами
+FROM ubuntu AS hadoop-image
+ARG DEBIAN_FRONTEND=noninteractive
+# https://stackoverflow.com/questions/24991136/docker-build-could-not-resolve-archive-ubuntu-com-apt-get-fails-to-install-a
+RUN apt update -y
+RUN apt upgrade -y
+RUN apt install -y openjdk-11-jdk 
+RUN apt install -y krb5-user 
+RUN apt install -y ca-certificates
+WORKDIR /tmp
+# ADD https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz /tmp/
+COPY ./Data/Distrib/hadoop-3.4.0.tar.gz /tmp/
+RUN tar xzf hadoop-3.4.0.tar.gz -C /usr/local
+RUN rm hadoop-3.4.0.tar.gz
+RUN mv /usr/local/hadoop-3.4.0 /usr/local/hadoop
+RUN addgroup hadoop
+RUN adduser --ingroup hadoop --disabled-password --gecos "" hdfs
+RUN adduser --ingroup hadoop --disabled-password --gecos "" yarn
+RUN adduser --ingroup hadoop --disabled-password --gecos "" mapred
+RUN adduser --ingroup hadoop --disabled-password --gecos "" knox
+COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
+COPY ./Config/Hadoop/http-signature.secret /etc/http-signature.secret
+COPY ./Config/Hadoop/log4j.properties /usr/local/hadoop/etc/hadoop/log4j.properties
+COPY --chmod=777 ./scripts/utils/myrun_scripts.sh /opt/bin/myrun_scripts
+COPY --chmod=777 ./scripts/create-https-key.sh /opt/bin/https_key_init
+COPY --chmod=777 ./scripts/kdc-keytabs-waiting.sh /opt/bin/kdc_waiting
+COPY --chmod=777 ./scripts/utils/mywait.sh /opt/bin/mywait
+COPY --chmod=777 ./scripts/init-hadoop-directory.sh /opt/bin/init_hadoop_dir
+COPY ./Config/Kerberos/krb5.conf /etc/krb5kdc/krb5.conf
+ENV KRB5_CONFIG="/etc/krb5kdc/krb5.conf"
+# https://stackoverflow.com/questions/33132768/kerberos-still-using-default-etc-krb5-conf-file-even-after-setting-krb5-config
+ENV HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.conf=/etc/krb5kdc/krb5.conf"
+ENV HADOOP_HOME="/usr/local/hadoop"
+ENV HADOOP_COMMON_HOME="$HADOOP_HOME"
+ENV HADOOP_CONF_DIR="$HADOOP_HOME/etc/hadoop"
+ENV HADOOP_HDFS_HOME="$HADOOP_HOME"
+ENV HADOOP_MAPRED_HOME="$HADOOP_HOME"
+ENV HADOOP_YARN_HOME="$HADOOP_HOME"
+ENV HADOOP_OS_TYPE="Linux"
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV PATH="$PATH:/opt/bin:$HADOOP_HOME/bin:$JAVA_HOME/bin"
+# https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SecureMode.html#Troubleshooting
+ENV HADOOP_JAAS_DEBUG true
+ENV HADOOP_OPTS "$HADOOP_OPTS -Djava.net.preferIPv4Stack=true -Dsun.security.krb5.debug=true -Dsun.security.spnego.debug"
+
 # name-node
 FROM hadoop-image AS hadoop-master
 COPY ./Config/Ranger/hdfs/install.properties /tmp/hdfs/install.properties
+COPY --chmod=777 ./Data/Ranger_distrib/ranger/target/ranger-2.5.1-SNAPSHOT-hdfs-plugin.tar.gz /usr/local/ranger-2.5.1-SNAPSHOT-hdfs-plugin.tar.gz
 COPY --chmod=777 ./scripts/name-node/filesystem-format.sh /opt/bin/hadoop_init
 COPY --chmod=777 ./scripts/name-node/install-hdfs-plugin.sh /opt/bin/ranger_init
 COPY --chmod=777 ./scripts/name-node/filesystem-init.sh /scripts/a.sh
-COPY --chmod=777 ./Data/Ranger_distrib/ranger/target/ranger-2.5.1-SNAPSHOT-hdfs-plugin.tar.gz /usr/local/ranger-2.5.1-SNAPSHOT-hdfs-plugin.tar.gz
-ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && \
+ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && init_hadoop_dir && \
                                 su -c '/opt/bin/hadoop_init' hdfs && \
                                 ranger_init && \
                                 su -c '/usr/local/hadoop/bin/hdfs --daemon start namenode' hdfs && \
@@ -113,26 +104,29 @@ FROM hadoop-image AS hadoop-rmanager
 COPY ./Config/Ranger/yarn/install.properties /tmp/yarn/install.properties
 COPY --chmod=777 ./scripts/yarn/install-yarn-plugin.sh /opt/bin/ranger_init
 COPY --chmod=777 ./Data/Ranger_distrib/ranger/target/ranger-2.5.1-SNAPSHOT-yarn-plugin.tar.gz /usr/local/ranger-2.5.1-SNAPSHOT-yarn-plugin.tar.gz
-ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && ranger_init && \
+ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && init_hadoop_dir && \
+                                ranger_init && \
                                 su -c '/usr/local/hadoop/bin/yarn --daemon start resourcemanager' yarn && \
                                 mywait"]
                                 # Ranger Plugin for yarn has been enabled. Please restart yarn to ensure that changes are effective.
 # data-node and node-manager
 FROM hadoop-image AS hadoop-worker
-ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && \
+ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && init_hadoop_dir && \
                                 su -c '/usr/local/hadoop/bin/hdfs datanode &' hdfs && \
-                                su -c '/usr/local/hadoop/bin/yarn nodemanager &' yarn && mywait" ]
+                                su -c '/usr/local/hadoop/bin/yarn nodemanager &' yarn && \
+                                mywait" ]
 
 # yarn-history
 FROM hadoop-image AS hadoop-history
 COPY --chmod=777 ./scripts/yarn-history/wait-for-directory.sh /opt/bin/test_directory
-ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && test_directory && \
+ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && init_hadoop_dir && test_directory && \
                                 su -c '/usr/local/hadoop/bin/mapred historyserver' mapred" ]
 
 # Solr for ranger's audit
 FROM ubuntu AS hadoop-solr
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt update 
+RUN apt update -y
+RUN apt upgrade -y
 RUN apt install -y openjdk-11-jdk 
 RUN apt install -y krb5-user
 RUN apt install -y ca-certificates
@@ -159,16 +153,19 @@ ENV PATH=$PATH:$JAVA_HOME/bin
 ENV PATH="$PATH:/opt/bin/"
 ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && \
                                 su -c '/usr/local/solr/bin/solr start' solr && \
-                                su -c 'kinit -k -t /etc/security/keytabs/ranger.keytab rangeradmin/hadoop-ranger.docker.net@DOCKER.NET' solr && \
+                                su -c 'kinit -k -t /etc/security/keytabs/ranger.keytab rangeradmin/hadoop-ranger.hadoopnet@HADOOPNET' solr && \
                                 su -c '/usr/local/solr/bin/solr create_core -c ranger_audits -d /tmp/solr/schema' solr && \
                                 su -c 'kdestroy' solr && \
                                 tail -f /usr/local/solr/server/logs/solr.log" ]
 
+FROM postgres AS hadoop-postgres
+
 # Ranger-admin with ranger-usersync
 FROM ubuntu AS hadoop-ranger
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt update 
-RUN apt install -y openjdk-8-jdk 
+RUN apt update -y
+RUN apt upgrade -y
+RUN apt install -y openjdk-11-jdk 
 RUN apt install -y krb5-user
 RUN apt install -y ca-certificates
 RUN apt install -y libpostgresql-jdbc-java 
@@ -188,34 +185,35 @@ COPY ./Data/Ranger_distrib/ranger/target/ranger-2.5.1-SNAPSHOT-admin.tar.gz /usr
 COPY ./Data/Ranger_distrib/ranger/target/ranger-2.5.1-SNAPSHOT-usersync.tar.gz /usr/local/
 COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
 COPY ./Config/Hadoop/http-signature.secret /etc/http-signature.secret
-# COPY --chmod=777 ./scripts/java8-sec-fix.sh /opt/bin/java_fix
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+# COPY --chmod=777 ./scripts/java11-sec-fix.sh /opt/bin/java_fix
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH=$PATH:$JAVA_HOME/bin
 ENV PATH="$PATH:/opt/bin/"
 ENV HADOOP_HOME=/usr/local/hadoop
 ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && kdc_waiting && setup && mywait" ]
-                            # && tail -f /var/log/ranger/usersync/usersync-hadoop-ranger.docker.net-.log" ]
+                            # && tail -f /var/log/ranger/usersync/usersync-hadoop-ranger.hadoopnet-.log" ]
                             # && sleep infinity" ]
 
 # apache knox
 FROM ubuntu AS hadoop-knox
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update -y
+RUN apt upgrade -y
 RUN apt install -y openjdk-11-jdk 
 RUN apt install -y krb5-user
 RUN apt install -y ca-certificates
 RUN apt install -y unzip
 RUN apt install -y xmlstarlet
 RUN apt install -y curl
-RUN addgroup knox
-RUN adduser --ingroup knox --disabled-password --gecos "" knox
+RUN addgroup hadoop
+RUN adduser --ingroup hadoop --disabled-password --gecos "" knox
 # ADD https://dlcdn.apache.org/knox/2.0.0/knox-2.0.0.zip /usr/local
 COPY ./Data/Distrib/knox-2.0.0.zip /usr/local
 RUN unzip /usr/local/knox-2.0.0.zip -d /usr/local
 RUN ln -s /usr/local/knox-2.0.0 /usr/local/knox
 COPY ./Config/Knox/docker-proxy.xml /usr/local/knox/conf/topologies
 # COPY ./Config/Knox/ranger-proxy.xml /usr/local/knox/conf/topologies
-RUN chown knox:knox -R /usr/local/knox/
+RUN chown knox:hadoop -R /usr/local/knox/
 COPY ./Config/Kerberos/krb5.conf /etc/krb5.conf
 COPY ./Config/Hadoop/conf /usr/local/hadoop/etc/hadoop
 COPY ./Config/Hadoop/http-signature.secret /etc/http-signature.secret
@@ -233,7 +231,8 @@ ENV PATH=$PATH:$JAVA_HOME/bin
 ENV HADOOP_HOME=/usr/local/hadoop
 ENV PATH="$PATH:/opt/bin/"
 ENV GATEWAY_HOME=/usr/local/knox
-ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && get_pk && kdc_waiting && setup && ranger_init && \
+ENTRYPOINT [ "/bin/bash", "-c", "https_key_init && get_pk && kdc_waiting && setup && \
+                                # ranger_init && \
                                 su -c '/usr/local/knox/bin/gateway.sh start' knox && \
                                 tail -f /usr/local/knox/logs/gateway.log " ]
                                 # mywait " ]

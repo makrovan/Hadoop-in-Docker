@@ -1,6 +1,6 @@
 #!/bin/bash
 set -x
-kinit -k -t /etc/security/keytabs/my.keytab hdfs@DOCKER.NET
+kinit -k -t /etc/security/keytabs/my.keytab hdfs@HADOOPNET
 printf "\n!!!Testing hadoop file system...\n"
 
 echo 'waiting for start of the namenode...'

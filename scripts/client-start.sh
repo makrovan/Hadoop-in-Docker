@@ -11,15 +11,15 @@ cp /etc/CA/mycacert.pem /usr/local/share/ca-certificates/mycacert.crt
 # # cat /usr/local/share/ca-certificates/mycacert.crt >> /etc/ssl/certs/ca-certificates.crt
 update-ca-certificates
 
-# kinit -k -t /etc/security/keytabs/my.keytab hdfs@DOCKER.NET 
+# kinit -k -t /etc/security/keytabs/my.keytab hdfs@HADOOPNET 
 
 # for solr test
-kinit -k -t /etc/security/keytabs/ranger.keytab rangeradmin/hadoop-ranger.docker.net@DOCKER.NET
+kinit -k -t /etc/security/keytabs/ranger.keytab rangeradmin/hadoop-ranger.hadoopnet@HADOOPNET
 
 echo "{
     \"policies\": {
         \"Authentication\": {
-            \"SPNEGO\": [\"docker.net\"]
+            \"SPNEGO\": [\"hadoopnet\"]
         },
         \"Certificates\": {
             \"ImportEnterpriseRoots\": true
@@ -32,17 +32,17 @@ echo "{
             # \"Install\": [ \"/root/.mozilla/certificates/mycacert.pem\" ]
 
 firefox about:policies \
-    https://hadoop-master.docker.net:9871 \
-    https://hadoop-rmanager.docker.net:8090 \
-    https://hadoop-history.docker.net:19890 \
-    https://hadoop-solr.docker.net:8983 \
-    https://hadoop-ranger.docker.net:6182 \
-    https://hadoop-knox.docker.net:8443/hdfs/dfshealth.html#tab-overview \
-    https://hadoop-knox.docker.net:8443/yarn \
-    https://hadoop-knox.docker.net:8443/jobhistory \
-    https://hadoop-knox.docker.net:8443/gateway/manager/admin-ui \
-    https://hadoop-knox.docker.net:8443/ranger
-    # https://hadoop-ranger.docker.net:6182/index.html#/policymanager/resource
+    https://hadoop-master.hadoopnet:9871 \
+    https://hadoop-rmanager.hadoopnet:8090 \
+    https://hadoop-history.hadoopnet:19890 \
+    https://hadoop-solr.hadoopnet:8983 \
+    https://hadoop-ranger.hadoopnet:6182 \
+    https://hadoop-knox.hadoopnet:8443/hdfs/index.html \
+    https://hadoop-knox.hadoopnet:8443/yarn \
+    https://hadoop-knox.hadoopnet:8443/jobhistory \
+    https://hadoop-knox.hadoopnet:8443/gateway/manager/admin-ui \
+    https://hadoop-knox.hadoopnet:8443/ranger
+    # https://hadoop-ranger.hadoopnet:6182/index.html#/policymanager/resource
 
 #xhost +
-# network.negotiate-auth.trusted-uris docker.net
+# network.negotiate-auth.trusted-uris hadoopnet

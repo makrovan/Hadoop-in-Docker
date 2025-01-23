@@ -19,11 +19,11 @@
     </gateway>
     <service>
         <role>RANGER</role>
-        <url>https://hadoop-ranger.docker.net:6182</url>
+        <url>https://hadoop-ranger.hadoopnet:6182</url>
     </service>
 
     <service>
         <role>RANGERUI</role>
-        <url>https://hadoop-ranger.docker.net:6182</url>
+        <url>https://hadoop-ranger.hadoopnet:6182</url>
     </service>
 </topology>
