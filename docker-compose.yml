@@ -9,7 +9,7 @@ services:
       - CA_Vol:/etc/CA
       - Sync_Vol:/etc/sync
     container_name: ldap-server
-    hostname: ldap-server.hadoopnet
+    hostname: 'ldap-server.{{.Node.Hostname}}.hadoopnet' # ldap-server.manager.hadoopnet
     networks:
       - hadoopnet
     deploy:
@@ -19,7 +19,8 @@ services:
       endpoint_mode: dnsrr
       placement:
         constraints:
-          - node.labels.TAG==manager
+          - node.hostname == manager
+          # - node.labels.TAG==manager
 
   kdc-server:
     image: 192.168.1.119:5000/kdc_server

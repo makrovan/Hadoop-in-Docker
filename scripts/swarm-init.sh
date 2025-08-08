@@ -29,6 +29,10 @@ exportfs -a
 # Start docker registry:
 systemctl stop docker
 echo '{"insecure-registries":["192.168.1.119:5000"]}' > /etc/docker/daemon.json
+
+## change the hostname for use node.hostname in docker-swarm.yml
+hostname manager
+## restart docker
 systemctl start docker
 docker run -d -p 5000:5000 --name registry registry:2
 # curl -X GET http://192.168.1.119:5000/v2/_catalog
